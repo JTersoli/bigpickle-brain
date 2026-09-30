@@ -1,0 +1,19 @@
+# dependencies
+node_modules/
+
+# local data: the agency's knowledge, client memory and reports live outside the repo
+data/
+runs/
+
+# secrets and local settings
+.env
+
+# scratch
+scratch/
+*.log
+
+# OS and editors
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

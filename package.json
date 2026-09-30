@@ -1,0 +1,43 @@
+{
+	"name": "bigpickle-brain",
+	"version": "0.1.0",
+	"description": "Multi-agent system for a digital agency: from a client brief to a researched, priced proposal, with shared memory about clients.",
+	"type": "module",
+	"private": true,
+	"engines": {
+		"node": ">=24"
+	},
+	"scripts": {
+		"research": "node src/cli.ts research",
+		"typecheck": "tsc --noEmit",
+		"test": "vitest run",
+		"lint": "eslint .",
+		"check": "npm run typecheck && npm run lint && npm test"
+	},
+	"keywords": [
+		"claude",
+		"ai-agents",
+		"anthropic",
+		"agency",
+		"research"
+	],
+	"author": "Josefina Tersoli",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/JTersoli/bigpickle-brain"
+	},
+	"dependencies": {
+		"@anthropic-ai/sdk": "^0.129.0",
+		"zod": "^4.6.5"
+	},
+	"devDependencies": {
+		"@eslint/js": "^9.39.4",
+		"@types/node": "^24.0.0",
+		"eslint": "^9.39.4",
+		"globals": "^17.6.1",
+		"typescript": "^5.9.0",
+		"typescript-eslint": "^8.71.0",
+		"vitest": "^5.0.3"
+	}
+}
