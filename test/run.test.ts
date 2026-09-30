@@ -90,13 +90,15 @@ describe('runResearch', () => {
 		expect(deps.requests[0]?.system).toContain('<agency_knowledge>');
 		expect(deps.requests[0]?.system).toContain('Sitio web de hasta 5 páginas');
 		expect(deps.requests[0]?.messages[0]?.content).toContain('<brief>');
+		expect(deps.requests[0]?.messages[0]?.content).toContain('Language of the report: the language of the brief');
 		expect(lines.some((line) => line.includes('recall_client'))).toBe(true);
 	});
 
 	it('saves the trace when the run fails', async () => {
 		const config = loadConfig({ ANTHROPIC_API_KEY: 'sk-test', BRAIN_DATA_DIR: dir, BRAIN_RUNS_DIR: path.join(dir, 'runs'), BRAIN_MAX_STEPS: '1' }, dir);
 		const deps = fakeDeps([reply([{ type: 'tool_use', id: 'tu_1', name: 'recall_client', input: { name: 'X' } }])]);
-		await expect(runResearch({ brief: 'X, a shop.', clientName: 'X', config, deps, now: () => new Date(2026, 8, 30) })).rejects.toMatchObject({ reason: 'step_limit' });
+		await expect(runResearch({ brief: 'X, a shop.', clientName: 'X', language: 'es', config, deps, now: () => new Date(2026, 8, 30) })).rejects.toMatchObject({ reason: 'step_limit' });
+		expect(deps.requests[0]?.messages[0]?.content).toContain('Language of the report: Spanish (es)');
 		const runs = await readdir(path.join(dir, 'runs'));
 		expect(runs).toHaveLength(1);
 		const summary = JSON.parse(await readFile(path.join(dir, 'runs', runs[0]!, 'summary.json'), 'utf8'));

@@ -119,7 +119,7 @@ node src/cli.ts research --file brief.md --client "<business name>"
 node src/cli.ts research "<brief>" --model claude-sonnet-5-5 --effort high --max-steps 30
 ```
 
-`--client` is optional but recommended: it names the memory note and the report file. Without it the agent takes the name from the brief.
+`--client` is optional but recommended: it names the memory note and the report file. Without it the agent takes the name from the brief. `--language es|en` forces the report's language; without it the agent follows the brief (Claude does, small local models sometimes do not).
 
 ## Output
 

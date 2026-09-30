@@ -98,14 +98,21 @@ Rules
 ${options.knowledge}`;
 }
 
+export type ReportLanguage = ResearchReport['language'];
+
+export const LANGUAGE_NAMES: Record<ReportLanguage, string> = { en: 'English', es: 'Spanish' };
+
 export interface ResearchTask {
 	brief: string;
 	clientName?: string;
 	today: string;
+	/** Forces the report's language. Without it, the agent follows the brief. */
+	language?: ReportLanguage;
 }
 
 /** The user message: the brief and the few things that change per run. */
 export function buildResearchMessage(task: ResearchTask): string {
 	const name = task.clientName?.trim() ? task.clientName.trim() : 'not given, take it from the brief';
-	return `<brief>\n${task.brief.trim()}\n</brief>\n\nClient name: ${name}\nToday: ${task.today}\n\nResearch this business and deliver the report with ${RESEARCH_FINAL_TOOL}.`;
+	const language = task.language ? `${LANGUAGE_NAMES[task.language]} (${task.language})` : 'the language of the brief';
+	return `<brief>\n${task.brief.trim()}\n</brief>\n\nClient name: ${name}\nToday: ${task.today}\nLanguage of the report: ${language}\n\nResearch this business and deliver the report with ${RESEARCH_FINAL_TOOL}.`;
 }

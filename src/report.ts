@@ -216,7 +216,7 @@ export function renderResearchReport(report: ResearchReport, meta: ReportMeta): 
 	lines.push('');
 	lines.push(`## ${t.run}`);
 	lines.push('');
-	lines.push(`- ${t.model}: ${meta.model} (${meta.provider})`);
+	lines.push(`- ${t.model}: ${meta.provider.includes(meta.model) ? meta.provider : `${meta.model} (${meta.provider})`}`);
 	lines.push(`- ${t.stepsLine}: ${meta.steps}, ${t.fetched}: ${meta.fetches}, ${t.duration}: ${(meta.durationMs / 1000).toFixed(0)} s`);
 	lines.push(`- ${t.tokens}: ${describeUsage(meta.usage, meta.cost)}`);
 	lines.push('');

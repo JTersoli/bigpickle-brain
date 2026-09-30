@@ -1,6 +1,6 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import { buildResearchMessage, createResearchAgent, type ResearchReport } from './agents/research.ts';
+import { buildResearchMessage, createResearchAgent, type ReportLanguage, type ResearchReport } from './agents/research.ts';
 import { describeProvider, type BrainConfig } from './config.ts';
 import { AgentRunError, runAgent, type LoopDeps, type MessageParam, type RunResult, type StepRecord } from './loop.ts';
 import { estimateCost, type UsageTotals } from './pricing.ts';
@@ -13,6 +13,7 @@ import { ClientMemory, createMemoryTools, isoDate } from './tools/memory.ts';
 export interface ResearchRunOptions {
 	brief: string;
 	clientName?: string;
+	language?: ReportLanguage;
 	config: BrainConfig;
 	log?: (line: string) => void;
 	/** Replaces the real API client, for tests. */
@@ -47,7 +48,7 @@ export async function runResearch(options: ResearchRunOptions): Promise<Research
 	const tools = [createFetchUrlTool({ maxChars: config.maxToolResultChars, maxFetches: config.maxFetches }, budget), ...createMemoryTools(memory)];
 	const agent = createResearchAgent({ knowledge: renderKnowledge(notes), tools, maxFetches: config.maxFetches });
 	const deps = options.deps ?? createLoopDeps(config);
-	const message = buildResearchMessage({ brief: options.brief, clientName: options.clientName, today });
+	const message = buildResearchMessage({ brief: options.brief, clientName: options.clientName, language: options.language, today });
 	const runDir = path.join(config.runsDir, `${stamp(started)}-${ClientMemory.slug(options.clientName ?? options.brief.slice(0, 40))}`);
 
 	let result: RunResult<ResearchReport>;

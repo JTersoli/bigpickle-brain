@@ -17,6 +17,7 @@ Usage:
 Options:
   -c, --client <name>   The business name (defaults to what the brief says)
   -f, --file <path>     Read the brief from a file
+  -l, --language <es|en>  Language of the report (defaults to the brief's language)
   -m, --model <id>      Model to use (overrides BRAIN_MODEL)
       --effort <level>  low | medium | high | xhigh | max (Claude models only)
       --max-steps <n>   Steps the agent may take (default 20)
@@ -34,6 +35,7 @@ async function main(argv: string[]): Promise<number> {
 		options: {
 			file: { type: 'string', short: 'f' },
 			client: { type: 'string', short: 'c' },
+			language: { type: 'string', short: 'l' },
 			model: { type: 'string', short: 'm' },
 			effort: { type: 'string' },
 			'max-steps': { type: 'string' },
@@ -61,6 +63,11 @@ async function main(argv: string[]): Promise<number> {
 		return 1;
 	}
 
+	if (values.language !== undefined && values.language !== 'es' && values.language !== 'en') {
+		console.error(`--language must be "es" or "en" (got "${values.language}").`);
+		return 1;
+	}
+
 	const env: NodeJS.ProcessEnv = { ...process.env };
 	if (values.model) {
 		env.BRAIN_MODEL = values.model;
@@ -80,7 +87,7 @@ async function main(argv: string[]): Promise<number> {
 	console.error(`Reports:   ${config.reportsDir}`);
 	console.error('');
 
-	const outcome = await runResearch({ brief, clientName: values.client, config, log });
+	const outcome = await runResearch({ brief, clientName: values.client, language: values.language, config, log });
 
 	console.error('');
 	console.log(`Report:  ${outcome.reportPath}`);
