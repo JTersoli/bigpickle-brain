@@ -114,7 +114,7 @@ const RememberInput = z.object({
 	facts: z.array(z.string()).describe('Verified facts worth keeping, one sentence each'),
 });
 
-export function createMemoryTools(memory: ClientMemory): AgentTool[] {
+export function createMemoryTools(memory: ClientMemory, now: () => Date = () => new Date()): AgentTool[] {
 	const recall = defineTool({
 		name: 'recall_client',
 		description: "Reads the agency's notes about a business from earlier work, or lists the businesses it has notes about.",
@@ -135,7 +135,7 @@ export function createMemoryTools(memory: ClientMemory): AgentTool[] {
 		description: "Saves verified facts about a business to the agency's notes, so the next agent or person starts from them. Facts only, not guesses.",
 		schema: RememberInput,
 		async run(input) {
-			const file = await memory.append(input.name, input.facts, 'agent');
+			const file = await memory.append(input.name, input.facts, 'agent', now());
 			return `Saved ${input.facts.length} fact(s) to ${path.basename(file)}.`;
 		},
 	});

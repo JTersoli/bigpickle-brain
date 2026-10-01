@@ -2,13 +2,14 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { buildResearchMessage, createResearchAgent, type ReportLanguage, type ResearchReport } from './agents/research.ts';
 import { describeProvider, type BrainConfig } from './config.ts';
-import { AgentRunError, runAgent, type LoopDeps, type MessageParam, type RunResult, type StepRecord } from './loop.ts';
-import { estimateCost, type UsageTotals } from './pricing.ts';
+import { AgentRunError, runAgent, type LoopDeps, type RunResult } from './loop.ts';
+import { estimateCost } from './pricing.ts';
 import { createLoopDeps } from './provider.ts';
 import { renderResearchReport, reportFileName } from './report.ts';
 import { createFetchUrlTool } from './tools/fetchUrl.ts';
 import { loadKnowledge, renderKnowledge } from './tools/knowledge.ts';
 import { ClientMemory, createMemoryTools, isoDate } from './tools/memory.ts';
+import { runFolder, writeTrace } from './trace.ts';
 
 export interface ResearchRunOptions {
 	brief: string;
@@ -45,18 +46,18 @@ export async function runResearch(options: ResearchRunOptions): Promise<Research
 	}
 	const memory = new ClientMemory(config.clientsDir);
 	const budget = { used: 0 };
-	const tools = [createFetchUrlTool({ maxChars: config.maxToolResultChars, maxFetches: config.maxFetches }, budget), ...createMemoryTools(memory)];
+	const tools = [createFetchUrlTool({ maxChars: config.maxToolResultChars, maxFetches: config.maxFetches }, budget), ...createMemoryTools(memory, now)];
 	const agent = createResearchAgent({ knowledge: renderKnowledge(notes), tools, maxFetches: config.maxFetches });
 	const deps = options.deps ?? createLoopDeps(config);
 	const message = buildResearchMessage({ brief: options.brief, clientName: options.clientName, language: options.language, today });
-	const runDir = path.join(config.runsDir, `${stamp(started)}-${ClientMemory.slug(options.clientName ?? options.brief.slice(0, 40))}`);
+	const runDir = runFolder(config.runsDir, started, ClientMemory.slug(options.clientName ?? options.brief.slice(0, 40)));
 
 	let result: RunResult<ResearchReport>;
 	try {
 		result = await runAgent(deps, agent, message, { maxSteps: config.maxSteps, log, now });
 	} catch (error) {
 		if (error instanceof AgentRunError) {
-			await writeTrace(runDir, { steps: error.steps, messages: error.messages, usage: error.usage, failure: error.reason, error: error.message });
+			await writeTrace(runDir, { steps: error.steps, messages: error.messages, usage: error.usage, brief: options.brief, failure: error.reason, error: error.message });
 		}
 		throw error;
 	}
@@ -81,7 +82,7 @@ export async function runResearch(options: ResearchRunOptions): Promise<Research
 	await writeFile(reportPath, markdown, 'utf8');
 
 	const memoryPath = await memory.append(clientName, memoryFacts(report, fileName.slice(0, -3)), 'research', started);
-	await writeTrace(runDir, { steps: result.steps, messages: result.messages, usage: result.usage, model: result.model, cost, reportPath, report });
+	await writeTrace(runDir, { steps: result.steps, messages: result.messages, usage: result.usage, model: result.model, cost, brief: options.brief, reportPath, report });
 
 	return { report, reportPath, memoryPath, runDir, result, cost, fetches: budget.used };
 }
@@ -99,29 +100,4 @@ export function memoryFacts(report: ResearchReport, reportNoteName: string): str
 	}
 	facts.push(`Research report: [[${reportNoteName}]]`);
 	return facts;
-}
-
-interface TraceData {
-	steps: StepRecord[];
-	messages: MessageParam[];
-	usage: UsageTotals;
-	model?: string;
-	cost?: number | null;
-	reportPath?: string;
-	report?: ResearchReport;
-	failure?: string;
-	error?: string;
-}
-
-async function writeTrace(runDir: string, data: TraceData): Promise<void> {
-	await mkdir(runDir, { recursive: true });
-	const { steps, messages, ...summary } = data;
-	await writeFile(path.join(runDir, 'trace.jsonl'), steps.map((step) => JSON.stringify(step)).join('\n') + '\n', 'utf8');
-	await writeFile(path.join(runDir, 'messages.json'), JSON.stringify(messages, null, '\t'), 'utf8');
-	await writeFile(path.join(runDir, 'summary.json'), JSON.stringify({ ...summary, steps: steps.length }, null, '\t'), 'utf8');
-}
-
-function stamp(date: Date): string {
-	const pad = (value: number) => String(value).padStart(2, '0');
-	return `${isoDate(date)}-${pad(date.getHours())}${pad(date.getMinutes())}${pad(date.getSeconds())}`;
 }

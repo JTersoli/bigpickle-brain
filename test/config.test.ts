@@ -14,6 +14,7 @@ describe('loadConfig', () => {
 		expect(config.knowledgeDir).toBe(path.join(cwd, 'data', 'knowledge'));
 		expect(config.clientsDir).toBe(path.join(cwd, 'data', 'clients'));
 		expect(config.reportsDir).toBe(path.join(cwd, 'data', 'reports'));
+		expect(config.proposalsDir).toBe(path.join(cwd, 'data', 'proposals'));
 		expect(config.runsDir).toBe(path.join(cwd, 'runs'));
 		expect(config.maxSteps).toBe(20);
 		expect(config.maxFetches).toBe(8);

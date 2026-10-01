@@ -22,6 +22,7 @@ export interface BrainConfig {
 	knowledgeDir: string;
 	clientsDir: string;
 	reportsDir: string;
+	proposalsDir: string;
 	runsDir: string;
 }
 
@@ -57,6 +58,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env, cwd: string = p
 		knowledgeDir: resolve(env.BRAIN_KNOWLEDGE_DIR, path.join(dataDir, 'knowledge')),
 		clientsDir: resolve(env.BRAIN_CLIENTS_DIR, path.join(dataDir, 'clients')),
 		reportsDir: resolve(env.BRAIN_REPORTS_DIR, path.join(dataDir, 'reports')),
+		proposalsDir: resolve(env.BRAIN_PROPOSALS_DIR, path.join(dataDir, 'proposals')),
 		runsDir: resolve(env.BRAIN_RUNS_DIR, 'runs'),
 	};
 }

@@ -2,44 +2,48 @@
 
 From a client brief to a researched, priced proposal, with AI agents that share a memory about your clients.
 
-Built for [bigpickle](https://www.bigpickle.com.au), a digital agency in Sydney, and written so any small agency can use it: the code is generic, and the agency's own knowledge, client notes and reports live outside the repository, in plain Markdown you can open in Obsidian or any editor.
+Built for [bigpickle](https://www.bigpickle.com.au), a digital agency in Sydney, and written so any small agency can use it: the code is generic, and the agency's own knowledge, client notes, reports and proposals live outside the repository, in plain Markdown you can open in Obsidian or any editor.
 
-**Status:** v0.1. The first agent, **research**, works end to end. The proposal agent, the quality reviewer and the orchestrator come next (see the roadmap).
+**Status:** v0.2. Two agents work end to end, **research** and **proposal**, and a pipeline runs them in order. The quality reviewer comes next (see the roadmap).
 
 ## What it does today
 
-You give the research agent a brief about a prospect:
+You give the pipeline a brief about a prospect:
 
 ```bash
-node src/cli.ts research "Gina's Bakery, artisan bakery in Bondi. Site: https://ginas.example.com. They sell through Instagram DMs and want online orders." --client "Gina's Bakery"
+node src/cli.ts pipeline "Gina's Bakery, artisan bakery in Bondi. Site: https://ginas.example.com. They sell through Instagram DMs and want online orders." --client "Gina's Bakery"
 ```
 
-The agent then:
+**Stage 1, research.** The research agent checks the agency's notes about the business (`recall_client`), reads the business's website page by page and any competitor the brief names (`fetch_url`), saves the facts worth keeping (`remember_client`) and delivers a structured report (`submit_research`): summary, business profile, digital presence, problems with evidence, competitors, opportunities mapped to the agency's services and price ranges, questions for the client, sources and a confidence rating.
 
-1. Checks the agency's notes about the business (`recall_client`).
-2. Reads the business's website, page by page, and any competitor the brief names (`fetch_url`).
-3. Saves the facts worth keeping to the client's note (`remember_client`).
-4. Delivers a structured report (`submit_research`): summary, business profile, digital presence, problems with evidence, competitors, opportunities mapped to the agency's services and price ranges, questions for the client, sources and a confidence rating.
+**Stage 2, proposal.** The proposal agent takes the brief, the research report and the agency's knowledge, checks what was quoted before (`recall_client`, `past_proposals`) and delivers the proposal (`submit_proposal`): what we understood, objectives, the scope as priced items, timeline, investment, what is not included, next steps, plus an internal section for the agency (assumptions, alerts, questions to ask before sending).
 
 What you get back:
 
-- A Markdown report, in the language of the brief, in your reports folder.
-- The client's memory note updated with dated facts and a link to the report, so the next agent, or you, starts from there.
-- A trace of the run (every step, tool call, token count and the estimated cost) in `runs/`.
+- A research note and a proposal note, in the language of the brief, in your reports and proposals folders.
+- The client's memory note updated with dated facts, the amount quoted and links to both notes, so the next run, or you, starts from there.
+- A trace of every stage (steps, tool calls, token counts, estimated cost) in `runs/`.
 
 ```
-Research agent: claude-opus-5-5 on the Claude API
+Pipeline (research, then proposal): claude-opus-5-5 on the Claude API
+stage 1 of 2: research
 step 1: recall_client {"name":"Gina's Bakery"} -> 61 chars (0.0 s)
 step 2: fetch_url {"url":"https://ginas.example.com","offset":0} -> 6,412 chars (1.1 s)
 step 3: fetch_url {"url":"https://ginas.example.com/menu","offset":0} -> 3,088 chars (0.7 s)
 step 4: remember_client {"name":"Gina's Bakery","facts":[...]} -> 30 chars (0.0 s)
 step 5: submit_research {...} -> 36 chars (0.0 s)
+stage 2 of 2: proposal
+step 1: past_proposals {"limit":10} -> 212 chars (0.0 s)
+step 2: submit_proposal {...} -> 36 chars (0.0 s)
 
-Report:  .../reports/2026-09-30 Research Gina's Bakery.md
-Memory:  .../clients/gina-s-bakery.md
-Trace:   runs/2026-09-30-154210-gina-s-bakery
-5 steps, 2 pages fetched, 48 s, 5 requests, 31,204 tokens in, 4,120 out, 24,900 read from cache, cost: ~$0.13
+Report:   .../reports/2026-10-01 Research Gina's Bakery.md
+Proposal: .../proposals/2026-10-01 Proposal Gina's Bakery.md
+Memory:   .../clients/gina-s-bakery.md
+Total:    AUD 1,300 – AUD 2,000
+7 steps, 2 pages fetched, 95 s, 7 requests, 52,910 tokens in, 7,400 out, 41,200 read from cache, cost: ~$0.24
 ```
+
+Each stage also runs on its own: `research "<brief>"` writes the report, and `propose --research runs/<run>/summary.json` writes a proposal from a saved research run, so you can rerun the proposal without paying for the research again.
 
 ## Why
 
@@ -48,24 +52,29 @@ Every proposal starts the same way: an hour of re-discovering the client. What d
 The goal is a system of three agents, coordinated by an orchestrator, that turns a brief into a proposal in minutes:
 
 - **Research**: the business and its competition. Done.
-- **Proposal and quote**: with the agency's services, the price history and the tone. Next.
-- **Quality review**: checks the proposal against the research and the rules before a person sees it.
+- **Proposal and quote**: with the agency's services, the price history and the tone. Done.
+- **Quality review**: checks the proposal against the research and the rules before a person sees it. Next.
 
 They share one memory about clients, and everything they produce is a note a person can read, edit and correct.
 
 ## How it works
 
 ```
-brief ──▶ research agent ──▶ report.md
-              │  ▲                 │
-       tools  ▼  │ results         ▼
-   fetch_url · recall_client · remember_client        client memory (append-only notes)
+brief ──▶ research agent ──▶ report.md ──▶ proposal agent ──▶ proposal.md
+              │  ▲                              │  ▲
+       tools  ▼  │ results               tools  ▼  │ results
+   fetch_url · recall_client · remember_client      recall_client · remember_client · past_proposals
+                        │                                    │
+                        └──────── client memory (append-only notes) ────────┘
 ```
 
-- **The agent loop** ([src/loop.ts](src/loop.ts)) is written by hand on the Anthropic Messages API: send the system prompt, the tools and the conversation; run the tools the model calls; feed the results back; repeat until the model calls the *final tool* with a result that matches the schema. The final tool is how an agent delivers its output: a strict JSON schema, validated with Zod, so a report always has the same shape. Answers in text get a reminder; refusals, cut-off answers and step limits stop the run with a saved trace.
+- **The agent loop** ([src/loop.ts](src/loop.ts)) is written by hand on the Anthropic Messages API: send the system prompt, the tools and the conversation; run the tools the model calls; feed the results back; repeat until the model calls the *final tool* with a result that matches the schema. The final tool is how an agent delivers its output: a strict JSON schema, validated with Zod, so a report or a proposal always has the same shape. Answers in text get a reminder; refusals, cut-off answers and step limits stop the run with a saved trace.
+- **The orchestrator** ([src/pipeline.ts](src/pipeline.ts)) is plain code, not a model: research first, then the proposal from that research, each stage leaving its note, its memory lines and its trace. Stages are independent functions, so the next agent slots in the same way.
 - **Tools** live in [src/tools/](src/tools/). Each one is a Zod schema plus a function. The schema becomes the tool definition the API receives, and every input is validated before it runs, on any model.
 - **Knowledge** ([src/tools/knowledge.ts](src/tools/knowledge.ts)): every Markdown note in the knowledge folder goes into the system prompt, in a fixed order, so it is cached between requests. A note with `private: true` in its frontmatter is never sent.
-- **Memory** ([src/tools/memory.ts](src/tools/memory.ts)): one note per client, append-only. Agents add dated lines (`- 2026-09-30 (research): ...`); the harness adds the report summary and link after every run, so memory does not depend on the model remembering to write. People edit the notes freely.
+- **Memory** ([src/tools/memory.ts](src/tools/memory.ts)): one note per client, append-only. Agents add dated lines (`- 2026-10-01 (research): ...`); the harness adds the report summary, the amount quoted and the links after every stage, so memory does not depend on the model remembering to write. People edit the notes freely.
+- **Price history** ([src/tools/proposals.ts](src/tools/proposals.ts)): the proposals folder is the history. Every proposal note carries its client, services and total in its frontmatter, and `past_proposals` reads them back, so new quotes stay consistent with old ones.
+- **Totals are computed, not trusted**: the proposal's total is the sum of its core items, worked out by the code. If the model wrote a different total, the note shows the sum and an alert says so.
 - **Provider** ([src/provider.ts](src/provider.ts)): one code path for the Claude API and for any server that speaks the Anthropic Messages API, such as Ollama. On Claude: cached system prompt, cached conversation, strict tools, adaptive thinking with a configurable effort, and server-side fallbacks for safety-classifier refusals. On a local server: the plain request.
 
 ## Setup
@@ -96,34 +105,40 @@ BRAIN_MODEL=qwen3.6:35b-a3b
 
 Local models are slower and less thorough than Claude, but they cost nothing and nothing leaves your machine. The same code runs on both, so develop locally and switch to Claude when quality matters.
 
-Finally, point the data folders at your notes, or use the defaults (`data/knowledge`, `data/clients`, `data/reports`, all ignored by git):
+Finally, point the data folders at your notes, or use the defaults (`data/knowledge`, `data/clients`, `data/reports`, `data/proposals`, all ignored by git):
 
 ```
 BRAIN_KNOWLEDGE_DIR=C:\path\to\vault\Brain\Knowledge
 BRAIN_CLIENTS_DIR=C:\path\to\vault\Brain\Clients
 BRAIN_REPORTS_DIR=C:\path\to\vault\Brain\Reports
+BRAIN_PROPOSALS_DIR=C:\path\to\vault\Brain\Proposals
 ```
 
-Put at least one note in the knowledge folder: who you are, who you work with, what you sell and for how much. [data.example/knowledge/agency.md](data.example/knowledge/agency.md) is a template.
+Put at least one note in the knowledge folder: who you are, who you work with, what you sell and for how much, your payment terms and your tone. [data.example/knowledge/agency.md](data.example/knowledge/agency.md) is a template. The proposal agent quotes only the prices it finds there.
 
 ## Usage
 
 ```bash
-# Brief on the command line
+# Everything: research, then the proposal
+node src/cli.ts pipeline "<brief>" --client "<business name>"
+
+# Research only
 node src/cli.ts research "<brief>" --client "<business name>"
 
-# Brief from a file
-node src/cli.ts research --file brief.md --client "<business name>"
+# A proposal from a saved research run (no new research)
+node src/cli.ts propose --research runs/2026-10-01-113000-ginas-bakery/summary.json --client "<business name>"
 
-# One-off overrides
-node src/cli.ts research "<brief>" --model claude-sonnet-5-5 --effort high --max-steps 30
+# Brief from a file, report language forced, one-off overrides
+node src/cli.ts pipeline --file brief.md --language es --model claude-sonnet-5-5 --effort high --max-steps 30
 ```
 
-`--client` is optional but recommended: it names the memory note and the report file. Without it the agent takes the name from the brief. `--language es|en` forces the report's language; without it the agent follows the brief (Claude does, small local models sometimes do not).
+`--client` is optional but recommended: it names the memory note and the files. Without it the agents take the name from the brief. `--language es|en` forces the language of the notes; without it the agents follow the brief (Claude does, small local models sometimes do not).
 
 ## Output
 
-**The report** is a note with frontmatter (`type`, `client`, `website`, `date`, `model`, `confidence`) and these sections: summary, the business, digital presence (table), problems found (with evidence and impact), competitors, opportunities for the agency (service, why, price range, priority), questions for the client, sources, confidence, the brief, and the run (model, steps, pages, tokens, cost). Headings follow the report's language (English or Spanish).
+**The research note** has frontmatter (`type`, `client`, `website`, `date`, `model`, `confidence`) and these sections: summary, the business, digital presence (table), problems found (with evidence and impact), competitors, opportunities for the agency (service, why, price range, priority), questions for the client, sources, confidence, the brief, and the run (model, steps, pages, tokens, cost).
+
+**The proposal note** is written for the client, with the internal notes at the end after a rule: title and summary; what we understood; objectives; what we propose (one section per core item with deliverables and price, optional items apart); timeline (table); investment (table with the computed total, payment terms, market comparison, ongoing costs); not included; next steps; then *internal notes, do not send*: alerts, assumptions, questions for the client, the link to the research, the brief and the run. Its frontmatter (`client`, `date`, `status`, `currency`, `total_min`, `total_max`, `services`, `research`) is what `past_proposals` reads.
 
 **The client note** looks like this:
 
@@ -131,20 +146,22 @@ node src/cli.ts research "<brief>" --model claude-sonnet-5-5 --effort high --max
 ---
 type: client
 name: "Gina's Bakery"
-created: 2026-09-30
-updated: 2026-09-30
+created: 2026-10-01
+updated: 2026-10-01
 ---
 
 # Gina's Bakery
 
 ## Notes
 
-- 2026-09-30 (agent): Sells sourdough, pastries and coffee from one shop in Bondi.
-- 2026-09-30 (research): Website: https://ginas.example.com
-- 2026-09-30 (research): Research report: [[2026-09-30 Research Gina's Bakery]]
+- 2026-10-01 (agent): Sells sourdough, pastries and coffee from one shop in Bondi.
+- 2026-10-01 (research): Website: https://ginas.example.com
+- 2026-10-01 (research): Research report: [[2026-10-01 Research Gina's Bakery]]
+- 2026-10-01 (proposal): Proposal: [[2026-10-01 Proposal Gina's Bakery]]
+- 2026-10-01 (proposal): Quoted AUD 1,300 – AUD 2,000 for: Business website, AI assistant on the site
 ```
 
-**The trace** (`runs/<date>-<time>-<client>/`) has `trace.jsonl` (one line per step: stop reason, tokens, tool calls with timings), `messages.json` (the full conversation) and `summary.json` (usage, cost, report). Failed runs save it too.
+**The traces** (`runs/<date>-<time>-<client>[-proposal|-pipeline]/`) have `trace.jsonl` (one line per step: stop reason, tokens, tool calls with timings), `messages.json` (the full conversation) and `summary.json` (usage, cost, the result). Failed runs save them too.
 
 ## Cost and observability
 
@@ -152,19 +169,20 @@ On Claude, the system prompt (rules plus knowledge) is cached and reused across 
 
 ## Security
 
-The agent reads the open web, so the harness is built around one idea: **the model decides what to look at; the code decides what happens.**
+The agents read the open web and write proposals with prices, so the harness is built around one idea: **the model decides what to look at and what to say; the code decides what happens.**
 
-- Fetched pages are untrusted. They are wrapped in a `<fetched_page>` block with a warning, the model is told to treat them as data, and nothing a page says can make the code do anything: tool inputs are validated, the memory is append-only and confined to its folder, report file names are sanitised, and the only way out of a run is the final tool's schema.
+- Fetched pages are untrusted. They are wrapped in a `<fetched_page>` block with a warning, the model is told to treat them as data, and nothing a page says can make the code do anything: tool inputs are validated, the memory is append-only and confined to its folder, file names are sanitised, and the only way out of a run is the final tool's schema.
 - `fetch_url` only fetches public `http(s)` URLs. Localhost, private and link-local ranges (IPv4 and IPv6), URLs with credentials and non-web schemes are refused, on every redirect hop. Downloads are capped in size and time, and only HTML and text are read.
+- Proposal totals are computed from the line items; the knowledge is the only source of prices the agent is allowed to use, and the internal notes flag anything to check before sending.
 - Tool schemas are strict on Claude (`strict: true`), and every input is checked with Zod before a tool runs, on any model.
 - No client data in the repository: `.env`, `data/` and `runs/` are ignored. Knowledge notes marked `private: true` are never sent.
-- Known limits: DNS rebinding is not covered (the check is on the hostname, not the resolved address); pages that need JavaScript to render come back empty; there is no web search yet.
+- Known limits: DNS rebinding is not covered (the check is on the hostname, not the resolved address); pages that need JavaScript to render come back empty; there is no web search yet; prices are not yet checked against the knowledge by code (that is the reviewer's job, next).
 
 ## Roadmap
 
 1. **Research agent** with tools and memory, end to end. Done (v0.1).
-2. **Proposal and quote agent** and the orchestrator that runs research then proposal.
-3. **Quality review agent**, and the shared memory read and written by all three.
+2. **Proposal and quote agent**, and the orchestrator that runs research then proposal. Done (v0.2).
+3. **Quality review agent**: checks the proposal against the research, the knowledge and the rules, and the shared memory read and written by all three.
 4. **Evals**: a set of briefs with expected findings, and prompt-injection test pages.
 5. **Production**: deploy, a minimal interface, time and cost metrics per run.
 6. Write-up and a public example.
@@ -178,7 +196,7 @@ npm run typecheck   # tsc --noEmit
 npm run lint        # eslint
 ```
 
-The tests cover the HTML reader, the URL rules and the fetch tool, the memory store and its tools, the knowledge loader, the provider profiles, the report renderer, the agent loop (against a fake model) and a full research run (against a fake model, with real files).
+The tests cover the HTML reader, the URL rules and the fetch tool, the memory store and its tools, the knowledge loader, the proposal store, the provider profiles, both renderers, the agent loop (against a fake model), and full research, proposal and pipeline runs (against a fake model, with real files).
 
 ## License
 

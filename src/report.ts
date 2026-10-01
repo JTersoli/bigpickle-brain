@@ -227,13 +227,18 @@ export function renderResearchReport(report: ResearchReport, meta: ReportMeta): 
 /** `2026-09-30 Research Client.md`, safe for any file system and for Obsidian links. */
 export function reportFileName(date: string, client: string, language: ResearchReport['language']): string {
 	const word = language === 'es' ? 'Investigación' : 'Research';
-	const safeClient = client
+	return `${date} ${word} ${safeNamePart(client)}.md`;
+}
+
+/** A client name as it can appear in a file name and inside an Obsidian link. */
+export function safeNamePart(text: string, fallback = 'client'): string {
+	const safe = text
 		.replace(/[\\/:*?"<>|#^[\]]/g, ' ')
 		.replace(/\s+/g, ' ')
 		.trim()
 		.slice(0, 80)
 		.trim();
-	return `${date} ${word} ${safeClient || 'client'}.md`;
+	return safe || fallback;
 }
 
 function cell(text: string): string {
