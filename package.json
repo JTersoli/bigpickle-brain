@@ -1,6 +1,6 @@
 {
 	"name": "bigpickle-brain",
-	"version": "0.1.0",
+	"version": "0.2.0",
 	"description": "Multi-agent system for a digital agency: from a client brief to a researched, priced proposal, with shared memory about clients.",
 	"type": "module",
 	"private": true,
