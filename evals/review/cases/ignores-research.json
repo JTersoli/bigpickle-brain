@@ -1,0 +1,63 @@
+{
+	"name": "ignores-research",
+	"description": "Prices and services are right, but the proposal sells a landing page and an AI assistant and ignores the two high-impact problems the research found (no online ordering, no Google profile) without saying why. Only the reviewer can judge the fit; the code flags the landing page as absent from the research.",
+	"research": "ginas-bakery",
+	"brief": "Gina's Bakery, artisan bakery in Bondi. Site: https://ginas-bakery.example/. They take orders through Instagram DMs and want online orders.",
+	"proposal": {
+		"client_name": "Gina's Bakery",
+		"language": "en",
+		"title": "Gina's Bakery: a page that answers for you",
+		"summary": "Your customers ask the same questions every day on Instagram. We propose a new landing page and an AI assistant that answers hours, menu and allergen questions around the clock.",
+		"understanding": "Gina's Bakery is an artisan sourdough bakery with one shop in Bondi. The website shows the menu and the hours and Instagram is active. Customers write with questions and orders all day.",
+		"objectives": ["Answer customer questions without a person on Instagram", "A page that looks good on a phone"],
+		"scope": [
+			{
+				"name": "Landing page",
+				"service": "Landing page",
+				"description": "One page, mobile first, with the menu, the hours, the map and a contact form.",
+				"deliverables": ["One-page site", "Contact form", "Basic SEO"],
+				"price_min": 800,
+				"price_max": 1200,
+				"price_note": "",
+				"priority": "core"
+			},
+			{
+				"name": "AI assistant",
+				"service": "AI assistant on the site or WhatsApp",
+				"description": "Answers questions about hours, menu and allergens, 24/7, on the page and on WhatsApp.",
+				"deliverables": ["Assistant trained on your menu and FAQs", "WhatsApp connection", "Monthly report of questions"],
+				"price_min": 600,
+				"price_max": 1000,
+				"price_note": "",
+				"priority": "core"
+			}
+		],
+		"out_of_scope": ["Online ordering", "Google Business Profile", "Paid advertising"],
+		"timeline": [
+			{ "phase": "Kickoff", "duration": "week 1", "work": "Content, FAQs and access", "needs_from_client": "Menu, hours, the questions you get most" },
+			{ "phase": "Build", "duration": "weeks 2 and 3", "work": "Page and assistant", "needs_from_client": "Review the preview" },
+			{ "phase": "Launch", "duration": "week 4", "work": "Go live", "needs_from_client": "Nothing" }
+		],
+		"investment": {
+			"currency": "AUD",
+			"total_min": 1400,
+			"total_max": 2200,
+			"payment_terms": "50% to start, 50% on delivery. Two rounds of changes included.",
+			"market_comparison": "",
+			"ongoing": ""
+		},
+		"next_steps": ["Confirm the scope", "Pay the first 50%", "Kickoff call"],
+		"internal": {
+			"assumptions": ["The current menu stays as it is"],
+			"alerts": [],
+			"questions_for_client": ["Which questions do you get most on Instagram?"]
+		}
+	},
+	"expected": {
+		"verdict": "revise",
+		"findings": [
+			{ "id": "high-impact-problems-ignored", "severity": "medium", "by": "any", "match": ["online ordering", "Google Business", "high-impact", "high impact", "brief"], "note": "The brief asks for online orders and the research marks it and the Google profile as high impact; the proposal leaves both out without a reason." },
+			{ "id": "landing-page-not-in-research", "category": ["research", "other"], "severity": "low", "by": "code", "match": ["Landing page"], "note": "The research did not suggest a landing page." }
+		]
+	}
+}

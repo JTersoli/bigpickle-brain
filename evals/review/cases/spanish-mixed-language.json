@@ -1,0 +1,63 @@
+{
+	"name": "spanish-mixed-language",
+	"description": "A Spanish proposal with the timeline durations in English and the investment in USD when the knowledge quotes in AUD. Both are for the code checks.",
+	"research": "cafe-sol",
+	"brief": "Café Sol, cafetería de especialidad en Marrickville, dueños argentinos. No tenemos página, todo va por Instagram. Queremos una web con el menú y aparecer en Google.",
+	"proposal": {
+		"client_name": "Café Sol",
+		"language": "es",
+		"title": "Café Sol: una web con el menú y el café en el mapa",
+		"summary": "Hoy el menú y los horarios viven en Instagram y el café no aparece en Google Maps. Proponemos un sitio de pocas páginas con el menú, los horarios y cómo llegar, y el perfil de Google para que los busquen y los encuentren.",
+		"understanding": "Café Sol es una cafetería de especialidad con un local en Marrickville. No tiene sitio web ni perfil de Google; publica el menú en Instagram y toma reservas por mensaje.",
+		"objectives": ["Tener el menú y los horarios en un sitio propio", "Aparecer en Google Maps y en las búsquedas de café en Marrickville"],
+		"scope": [
+			{
+				"name": "Sitio web",
+				"service": "Business website",
+				"description": "Un sitio de hasta cinco páginas con el menú, los horarios, el mapa y un formulario de contacto, pensado para el teléfono.",
+				"deliverables": ["Diseño y cinco páginas", "Menú que ustedes actualizan", "Mapa y formulario de contacto"],
+				"price_min": 1500,
+				"price_max": 2500,
+				"price_note": "",
+				"priority": "core"
+			},
+			{
+				"name": "Perfil de Google",
+				"service": "Google Business Profile setup",
+				"description": "La ficha que pone al café en Google Maps: horarios, fotos y categorías.",
+				"deliverables": ["Ficha verificada", "Fotos, horarios y categorías", "Tres primeras publicaciones"],
+				"price_min": 300,
+				"price_max": 500,
+				"price_note": "",
+				"priority": "core"
+			}
+		],
+		"out_of_scope": ["Reservas online", "Publicidad paga", "Fotografía"],
+		"timeline": [
+			{ "phase": "Inicio", "duration": "week 1", "work": "Contenido, fotos y acceso al dominio", "needs_from_client": "Menú con precios, fotos, logo" },
+			{ "phase": "Desarrollo", "duration": "weeks 2 and 3", "work": "Sitio y ficha de Google", "needs_from_client": "Revisar la vista previa; verificar la ficha de Google" },
+			{ "phase": "Lanzamiento", "duration": "week 4", "work": "Publicación y capacitación", "needs_from_client": "Una hora para la capacitación" }
+		],
+		"investment": {
+			"currency": "USD",
+			"total_min": 1800,
+			"total_max": 3000,
+			"payment_terms": "50 % al empezar y 50 % a la entrega. Dos rondas de cambios incluidas.",
+			"market_comparison": "",
+			"ongoing": ""
+		},
+		"next_steps": ["Confirmar el alcance", "Pagar el primer 50 %", "Reunión de inicio para juntar el menú y las fotos"],
+		"internal": {
+			"assumptions": ["El menú tiene menos de 40 productos", "Las reservas siguen por Instagram"],
+			"alerts": ["Instagram no fue verificado; la investigación salió solo del brief"],
+			"questions_for_client": ["¿Tienen fotos del local y de los platos?"]
+		}
+	},
+	"expected": {
+		"verdict": "revise",
+		"findings": [
+			{ "id": "currency-not-in-knowledge", "category": "price", "severity": "high", "by": "code", "match": ["USD"], "note": "The knowledge quotes in AUD only." },
+			{ "id": "durations-in-english", "category": "language", "severity": "medium", "by": "code", "match": ["week", "idioma", "language"], "note": "The timeline durations are in English in a Spanish proposal." }
+		]
+	}
+}

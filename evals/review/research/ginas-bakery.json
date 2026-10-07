@@ -1,0 +1,45 @@
+{
+	"client_name": "Gina's Bakery",
+	"website": "https://ginas-bakery.example/",
+	"language": "en",
+	"summary": "Gina's Bakery is an artisan sourdough bakery with one shop in Bondi. It has a simple website with the menu and the opening hours, an active Instagram account, and it takes orders through Instagram direct messages. There is no online ordering and no Google Business Profile. The main opportunity is to take orders online and to be found on Google Maps.",
+	"business": {
+		"industry": "Bakery",
+		"location": "Bondi, Sydney, Australia",
+		"size_estimate": "1 shop, under 10 staff",
+		"segment": "smb"
+	},
+	"digital_presence": [
+		{ "channel": "website", "status": "found", "notes": "https://ginas-bakery.example/: home, menu and contact pages. Not mobile friendly: fixed-width layout, text overflows on a phone." },
+		{ "channel": "instagram", "status": "found", "notes": "Linked from the website footer. Posts most days; orders are taken in direct messages, according to the website." },
+		{ "channel": "google_business", "status": "not_found", "notes": "No listing found for the business name in Bondi." },
+		{ "channel": "online_ordering", "status": "not_found", "notes": "The website says to order by Instagram message or by phone." },
+		{ "channel": "reviews", "status": "unknown", "notes": "not checked" }
+	],
+	"problems": [
+		{ "problem": "Orders are taken by hand through Instagram messages and phone calls, with no catalogue, cart or payment online.", "evidence": "https://ginas-bakery.example/contact: \"To order, message us on Instagram or call the shop.\"", "impact": "high" },
+		{ "problem": "No Google Business Profile, so the bakery does not appear on Google Maps or in local search.", "evidence": "No listing found for \"Gina's Bakery\" in Bondi.", "impact": "high" },
+		{ "problem": "The website is not mobile friendly.", "evidence": "https://ginas-bakery.example/: fixed-width layout, text overflows on a phone.", "impact": "medium" }
+	],
+	"competitors": [
+		{ "name": "Bondi Bakehouse", "url": "https://bondi-bakehouse.example/", "notes": "not verified" }
+	],
+	"opportunities": [
+		{ "service": "Online ordering", "why": "Orders arrive by message and get lost; a catalogue with checkout takes them without a person on the phone.", "price_range": "$3,000 – $5,000", "priority": "high" },
+		{ "service": "Google Business Profile setup", "why": "The bakery is invisible on Google Maps and in local search.", "price_range": "$300 – $500", "priority": "high" },
+		{ "service": "Business website", "why": "The current site is not mobile friendly; most customers will look it up on a phone.", "price_range": "$1,500 – $2,500", "priority": "medium" },
+		{ "service": "AI assistant on the site or WhatsApp", "why": "Answers the questions that now arrive as Instagram messages.", "price_range": "$600 – $1,000", "priority": "low" }
+	],
+	"questions_for_client": [
+		"How many orders do you take per week through Instagram and by phone?",
+		"Do you want to deliver, or pickup only?",
+		"Who updates the menu today, and how often does it change?"
+	],
+	"sources": [
+		{ "url": "https://ginas-bakery.example/", "used_for": "Business profile, layout" },
+		{ "url": "https://ginas-bakery.example/menu", "used_for": "Products and prices" },
+		{ "url": "https://ginas-bakery.example/contact", "used_for": "How orders are taken, hours, Instagram link" }
+	],
+	"confidence": "medium",
+	"confidence_notes": "The website was read in full. Instagram, reviews and the competitor were not verified."
+}

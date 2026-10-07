@@ -1,0 +1,63 @@
+{
+	"name": "price-below-range",
+	"description": "Online ordering is quoted below the knowledge's minimum, and the total written leaves out the Google profile. Both are for the code checks.",
+	"research": "ginas-bakery",
+	"brief": "Gina's Bakery, artisan bakery in Bondi. Site: https://ginas-bakery.example/. They take orders through Instagram DMs and want online orders.",
+	"proposal": {
+		"client_name": "Gina's Bakery",
+		"language": "en",
+		"title": "Gina's Bakery: online orders without the Instagram inbox",
+		"summary": "Today every order arrives as an Instagram message or a phone call, and some get lost on the way. We propose online ordering with your menu, cart and checkout, and a Google Business Profile so people in Bondi find you on Maps.",
+		"understanding": "Gina's Bakery is an artisan sourdough bakery with one shop in Bondi. Orders are taken by hand through Instagram messages and calls. There is no online ordering and no Google Business Profile.",
+		"objectives": ["Take orders online, without a person answering messages", "Appear on Google Maps and in local searches"],
+		"scope": [
+			{
+				"name": "Online ordering",
+				"service": "Online ordering",
+				"description": "A catalogue with your menu, a cart and a checkout, so customers order and pay without messaging you.",
+				"deliverables": ["Catalogue with the menu", "Cart and checkout", "Order notifications"],
+				"price_min": 2200,
+				"price_max": 4000,
+				"price_note": "",
+				"priority": "core"
+			},
+			{
+				"name": "Google Business Profile",
+				"service": "Google Business Profile setup",
+				"description": "The listing that puts the bakery on Google Maps.",
+				"deliverables": ["Verified listing", "Photos, hours and categories"],
+				"price_min": 300,
+				"price_max": 500,
+				"price_note": "",
+				"priority": "core"
+			}
+		],
+		"out_of_scope": ["Delivery logistics", "Paid advertising"],
+		"timeline": [
+			{ "phase": "Kickoff", "duration": "week 1", "work": "Menu, photos and domain access", "needs_from_client": "Menu with prices, photos" },
+			{ "phase": "Build", "duration": "weeks 2 to 5", "work": "Catalogue, cart, checkout; Google listing", "needs_from_client": "Review the preview" },
+			{ "phase": "Launch", "duration": "week 6", "work": "Go live and training", "needs_from_client": "One hour for the training" }
+		],
+		"investment": {
+			"currency": "AUD",
+			"total_min": 2200,
+			"total_max": 4000,
+			"payment_terms": "50% to start, 50% on delivery. Two rounds of changes included.",
+			"market_comparison": "",
+			"ongoing": "Payment-provider fees are paid by you."
+		},
+		"next_steps": ["Confirm the scope", "Pay the first 50%", "Kickoff call"],
+		"internal": {
+			"assumptions": ["The menu has under 60 products"],
+			"alerts": ["Instagram and the competitor were not verified"],
+			"questions_for_client": ["How many orders do you take per week today?"]
+		}
+	},
+	"expected": {
+		"verdict": "revise",
+		"findings": [
+			{ "id": "price-below-minimum", "category": "price", "severity": "high", "by": "code", "match": ["below"], "note": "Online ordering at 2,200 – 4,000; the knowledge says 3,000 – 5,000." },
+			{ "id": "total-is-not-the-sum", "category": "price", "severity": "medium", "by": "code", "match": ["total"], "note": "The total written is 2,200 – 4,000; the core items add up to 2,500 – 4,500." }
+		]
+	}
+}

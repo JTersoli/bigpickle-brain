@@ -12,6 +12,9 @@ import { describeUsage } from './pricing.ts';
 import { formatMoney } from './proposalReport.ts';
 import { runProposal } from './propose.ts';
 import { describeError } from './provider.ts';
+import { EvalCaseError } from './evals/cases.ts';
+import { summarizeEvals } from './evals/report.ts';
+import { runEvals, type EvalSuite } from './evals/run.ts';
 import { runReview } from './review.ts';
 import { runResearch } from './run.ts';
 
@@ -22,6 +25,7 @@ Usage:
   node src/cli.ts research "<brief>" [options]        research only
   node src/cli.ts propose --research <summary.json>   proposal from a saved research run
   node src/cli.ts review --proposal <summary.json>    review of a saved proposal run
+  node src/cli.ts eval [review|research] [options]    the evals: proposals with planted errors, pages with prompt injection
   node src/cli.ts <command> --file brief.md [options]
 
 Options:
@@ -34,12 +38,15 @@ Options:
   -m, --model <id>          Model to use (overrides BRAIN_MODEL)
       --effort <level>      low | medium | high | xhigh | max (Claude models only)
       --max-steps <n>       Steps an agent may take (default 20)
+      --only <text>         eval: only the cases whose name contains the text
+      --checks-only         eval: the code checks alone, no model (review cases only)
+      --cases <dir>         eval: the folder with the cases (default evals)
   -q, --quiet               Only print the result
   -h, --help                This help
 
 Configuration comes from the environment or a .env file in the current folder. See .env.example.`;
 
-type Command = 'pipeline' | 'research' | 'propose' | 'review';
+type Command = 'pipeline' | 'research' | 'propose' | 'review' | 'eval';
 
 async function main(argv: string[]): Promise<number> {
 	loadDotEnv();
@@ -57,6 +64,9 @@ async function main(argv: string[]): Promise<number> {
 			model: { type: 'string', short: 'm' },
 			effort: { type: 'string' },
 			'max-steps': { type: 'string' },
+			only: { type: 'string' },
+			'checks-only': { type: 'boolean' },
+			cases: { type: 'string' },
 			quiet: { type: 'boolean', short: 'q' },
 			help: { type: 'boolean', short: 'h' },
 		},
@@ -157,6 +167,33 @@ async function main(argv: string[]): Promise<number> {
 		return 0;
 	}
 
+	if (command === 'eval') {
+		const suite = rest[0];
+		if (suite !== undefined && suite !== 'review' && suite !== 'research') {
+			console.error(`eval takes "review", "research" or nothing (got "${suite}").\n\n${USAGE}`);
+			return 1;
+		}
+		const suites: EvalSuite[] = suite ? [suite] : ['review', 'research'];
+		const checksOnly = values['checks-only'] ?? false;
+		const casesDir = path.resolve(values.cases ?? 'evals');
+		console.error(`${checksOnly ? 'Evals (checks only)' : 'Evals'}: ${checksOnly ? 'no model' : describeProvider(config)}`);
+		console.error(`Cases:     ${casesDir}`);
+		console.error(`Knowledge: ${path.join(casesDir, 'knowledge')}`);
+		console.error(`Runs:      ${config.runsDir}`);
+		console.error('');
+		const outcome = await runEvals({ config, casesDir, suites, only: values.only, checksOnly, log });
+		console.error('');
+		for (const line of summarizeEvals(outcome)) {
+			console.log(line);
+		}
+		console.log('');
+		console.log(`Report:   ${outcome.reportPath}`);
+		console.log(`Run:      ${outcome.runDir}`);
+		console.log(`${(outcome.durationMs / 1000).toFixed(0)} s, ${describeUsage(outcome.usage, outcome.cost)}`);
+		const failed = [...outcome.review, ...outcome.research].filter((result) => !result.score.pass).length;
+		return failed === 0 ? 0 : 1;
+	}
+
 	if (!brief) {
 		console.error(`Give the brief as an argument or with --file.\n\n${USAGE}`);
 		return 1;
@@ -188,7 +225,7 @@ async function main(argv: string[]): Promise<number> {
 }
 
 function isCommand(value: string): value is Command {
-	return value === 'pipeline' || value === 'research' || value === 'propose' || value === 'review';
+	return value === 'pipeline' || value === 'research' || value === 'propose' || value === 'review' || value === 'eval';
 }
 
 function printHeader(title: string, config: BrainConfig): void {
@@ -308,6 +345,8 @@ main(process.argv.slice(2)).then(
 	(error: unknown) => {
 		if (error instanceof ConfigError) {
 			console.error(`Configuration error: ${error.message}`);
+		} else if (error instanceof EvalCaseError) {
+			console.error(`Eval case error: ${error.message}`);
 		} else if (error instanceof AgentRunError) {
 			console.error(`The run failed (${error.reason}): ${error.message}`);
 			console.error('The trace was saved in the runs folder.');

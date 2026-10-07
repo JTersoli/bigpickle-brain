@@ -1,0 +1,73 @@
+{
+	"name": "invented-service",
+	"description": "A core item priced for a service the knowledge does not sell (a mobile app), which the research never suggested. For the code checks; the reviewer should also see that it has no basis in the research.",
+	"research": "ginas-bakery",
+	"brief": "Gina's Bakery, artisan bakery in Bondi. Site: https://ginas-bakery.example/. They take orders through Instagram DMs and want online orders.",
+	"proposal": {
+		"client_name": "Gina's Bakery",
+		"language": "en",
+		"title": "Gina's Bakery: orders online and in your own app",
+		"summary": "Orders arrive as Instagram messages and get lost. We propose online ordering on the website, a Google Business Profile, and a native iPhone app so regulars reorder in two taps.",
+		"understanding": "Gina's Bakery is an artisan sourdough bakery with one shop in Bondi. Orders are taken by hand through Instagram messages and calls. There is no online ordering and no Google Business Profile.",
+		"objectives": ["Take orders online, without a person answering messages", "Appear on Google Maps", "Let regulars reorder from an app"],
+		"scope": [
+			{
+				"name": "Online ordering",
+				"service": "Online ordering",
+				"description": "A catalogue with your menu, a cart and a checkout.",
+				"deliverables": ["Catalogue with the menu", "Cart and checkout", "Order notifications"],
+				"price_min": 3000,
+				"price_max": 5000,
+				"price_note": "",
+				"priority": "core"
+			},
+			{
+				"name": "Google Business Profile",
+				"service": "Google Business Profile setup",
+				"description": "The listing that puts the bakery on Google Maps.",
+				"deliverables": ["Verified listing", "Photos, hours and categories"],
+				"price_min": 300,
+				"price_max": 500,
+				"price_note": "",
+				"priority": "core"
+			},
+			{
+				"name": "iPhone app for regulars",
+				"service": "Mobile app development",
+				"description": "A native iPhone app with the menu and one-tap reorders, published on the App Store under your name.",
+				"deliverables": ["iOS app", "App Store listing", "Push notifications for specials"],
+				"price_min": 6000,
+				"price_max": 9000,
+				"price_note": "",
+				"priority": "core"
+			}
+		],
+		"out_of_scope": ["Android app", "Delivery logistics", "Paid advertising"],
+		"timeline": [
+			{ "phase": "Kickoff", "duration": "week 1", "work": "Menu, photos and domain access", "needs_from_client": "Menu with prices, photos" },
+			{ "phase": "Build", "duration": "weeks 2 to 8", "work": "Online ordering, Google listing, app", "needs_from_client": "Review the previews; Apple developer account" },
+			{ "phase": "Launch", "duration": "week 9", "work": "Go live and training", "needs_from_client": "One hour for the training" }
+		],
+		"investment": {
+			"currency": "AUD",
+			"total_min": 9300,
+			"total_max": 14500,
+			"payment_terms": "50% to start, 50% on delivery. Two rounds of changes included.",
+			"market_comparison": "",
+			"ongoing": "Apple developer account, AUD 149 per year, paid by you."
+		},
+		"next_steps": ["Confirm the scope", "Pay the first 50%", "Kickoff call"],
+		"internal": {
+			"assumptions": ["The menu has under 60 products"],
+			"alerts": ["Instagram and the competitor were not verified"],
+			"questions_for_client": ["How many orders do you take per week today?"]
+		}
+	},
+	"expected": {
+		"verdict": "revise",
+		"findings": [
+			{ "id": "service-not-in-knowledge", "category": "service", "severity": "high", "by": "code", "match": ["Mobile app development"], "note": "The knowledge has no mobile app service, yet the item carries a price." },
+			{ "id": "app-not-in-research", "category": ["research", "service", "other"], "severity": "low", "by": "code", "match": ["Mobile app development", "app"], "note": "Nothing in the brief or the research asks for an app." }
+		]
+	}
+}

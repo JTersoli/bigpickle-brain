@@ -1,0 +1,34 @@
+{
+	"client_name": "Café Sol",
+	"website": "",
+	"language": "es",
+	"summary": "Café Sol es una cafetería de especialidad con un local en Marrickville, Sídney, de dueños argentinos. No tiene sitio web ni perfil de Google: solo una cuenta de Instagram donde publica el menú y toma reservas por mensaje. La oportunidad principal es una base digital mínima: un sitio con el menú y el perfil de Google para aparecer en el mapa.",
+	"business": {
+		"industry": "Cafetería",
+		"location": "Marrickville, Sídney, Australia",
+		"size_estimate": "1 local, menos de 10 personas",
+		"segment": "smb"
+	},
+	"digital_presence": [
+		{ "channel": "website", "status": "not_found", "notes": "El brief dice que no tienen y no se encontró ninguno." },
+		{ "channel": "instagram", "status": "found", "notes": "Nombrado en el brief: publican el menú y toman reservas por mensaje." },
+		{ "channel": "google_business", "status": "not_found", "notes": "No aparece una ficha con ese nombre en Marrickville." },
+		{ "channel": "reviews", "status": "unknown", "notes": "not checked" }
+	],
+	"problems": [
+		{ "problem": "No tienen sitio web: el menú y los horarios solo están en Instagram.", "evidence": "Brief: \"no tenemos página, todo va por Instagram\".", "impact": "high" },
+		{ "problem": "No tienen perfil de Google, así que no aparecen en Google Maps ni en las búsquedas locales.", "evidence": "No se encontró una ficha de Google para Café Sol en Marrickville.", "impact": "medium" }
+	],
+	"competitors": [],
+	"opportunities": [
+		{ "service": "Business website", "why": "Un sitio de pocas páginas con el menú, los horarios y cómo llegar.", "price_range": "$1,500 – $2,500", "priority": "high" },
+		{ "service": "Google Business Profile setup", "why": "Aparecer en el mapa y en las búsquedas de \"café Marrickville\".", "price_range": "$300 – $500", "priority": "high" }
+	],
+	"questions_for_client": [
+		"¿Quieren tomar reservas desde el sitio o seguir por Instagram?",
+		"¿Tienen fotos del local y de los platos?"
+	],
+	"sources": [],
+	"confidence": "low",
+	"confidence_notes": "No hay sitio para leer: todo sale del brief. Instagram no fue verificado."
+}

@@ -1,0 +1,74 @@
+{
+	"name": "invented-technology",
+	"description": "Prices and services are right, but the proposal commits the agency to platforms nobody mentioned (Shopify, Stripe, Afterpay, Klaviyo), changes the payment terms to 30/70 and offers a free trial the knowledge forbids. Only the reviewer can catch these.",
+	"research": "ginas-bakery",
+	"brief": "Gina's Bakery, artisan bakery in Bondi. Site: https://ginas-bakery.example/. They take orders through Instagram DMs and want online orders.",
+	"proposal": {
+		"client_name": "Gina's Bakery",
+		"language": "en",
+		"title": "Gina's Bakery: online orders without the Instagram inbox",
+		"summary": "Today every order arrives as an Instagram message or a phone call. We propose online ordering built on Shopify, with Stripe and Afterpay at the checkout, plus a Google Business Profile so people in Bondi find you on Maps.",
+		"understanding": "Gina's Bakery is an artisan sourdough bakery with one shop in Bondi. Orders are taken by hand through Instagram messages and calls. There is no online ordering and no Google Business Profile.",
+		"objectives": ["Take orders online, without a person answering messages", "Appear on Google Maps and in local searches"],
+		"scope": [
+			{
+				"name": "Online ordering",
+				"service": "Online ordering",
+				"description": "A Shopify store with your menu, a cart and a checkout through Stripe and Afterpay, so customers order and pay without messaging you. Klaviyo sends the order confirmations and a weekly specials email.",
+				"deliverables": ["Shopify store with the menu", "Stripe and Afterpay checkout", "Klaviyo email flows: confirmation and weekly specials", "Pickup time slots"],
+				"price_min": 3000,
+				"price_max": 5000,
+				"price_note": "",
+				"priority": "core"
+			},
+			{
+				"name": "Google Business Profile",
+				"service": "Google Business Profile setup",
+				"description": "The listing that puts the bakery on Google Maps: hours, photos, categories and a link to order online.",
+				"deliverables": ["Verified listing", "Photos, hours and categories", "First three posts"],
+				"price_min": 300,
+				"price_max": 500,
+				"price_note": "",
+				"priority": "core"
+			},
+			{
+				"name": "Monthly care",
+				"service": "Monthly care",
+				"description": "Hosting, updates, backups and small changes. The first month is a free trial.",
+				"deliverables": ["Hosting and backups", "Updates", "Small changes each month"],
+				"price_min": 80,
+				"price_max": 150,
+				"price_note": "",
+				"priority": "optional"
+			}
+		],
+		"out_of_scope": ["Delivery logistics and couriers", "Paid advertising", "Food photography"],
+		"timeline": [
+			{ "phase": "Kickoff", "duration": "week 1", "work": "Menu, photos and domain access; Shopify and Stripe accounts", "needs_from_client": "Menu with prices, photos, access to the domain" },
+			{ "phase": "Build", "duration": "weeks 2 to 5", "work": "Store, checkout, email flows; Google listing", "needs_from_client": "Review the preview; verify the Google listing" },
+			{ "phase": "Launch", "duration": "week 6", "work": "Go live, train you on the orders screen", "needs_from_client": "One hour for the training" }
+		],
+		"investment": {
+			"currency": "AUD",
+			"total_min": 3300,
+			"total_max": 5500,
+			"payment_terms": "30% deposit to start, 70% on launch. Two rounds of changes included.",
+			"market_comparison": "",
+			"ongoing": "Shopify from AUD 56 per month and Klaviyo from AUD 30 per month, paid by you. Monthly care optional after the free month."
+		},
+		"next_steps": ["Confirm the scope and the pickup options", "Pay the 30% deposit", "Kickoff call to collect the menu and the photos"],
+		"internal": {
+			"assumptions": ["The menu has under 60 products", "Pickup only at launch"],
+			"alerts": ["Instagram, reviews and the competitor were not verified"],
+			"questions_for_client": ["How many orders do you take per week today?", "Pickup only, or delivery too?"]
+		}
+	},
+	"expected": {
+		"verdict": "revise",
+		"findings": [
+			{ "id": "platforms-nobody-mentioned", "severity": "high", "by": "any", "match": ["Shopify", "Stripe", "Afterpay", "Klaviyo"], "note": "Neither the knowledge, the research nor the brief names any platform or payment provider." },
+			{ "id": "payment-terms-changed", "severity": "medium", "by": "any", "match": ["30%", "30 %", "70%", "deposit", "payment terms"], "note": "The knowledge says 50% to start, 50% on delivery." },
+			{ "id": "free-trial", "severity": "medium", "by": "any", "match": ["trial", "free month"], "note": "The knowledge says no free trials." }
+		]
+	}
+}

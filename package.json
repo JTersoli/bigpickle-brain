@@ -1,6 +1,6 @@
 {
 	"name": "bigpickle-brain",
-	"version": "0.3.0",
+	"version": "0.4.0",
 	"description": "Multi-agent system for a digital agency: from a client brief to a researched, priced proposal, with shared memory about clients.",
 	"type": "module",
 	"private": true,
@@ -9,6 +9,7 @@
 	},
 	"scripts": {
 		"research": "node src/cli.ts research",
+		"eval": "node src/cli.ts eval",
 		"typecheck": "tsc --noEmit",
 		"test": "vitest run",
 		"lint": "eslint .",

@@ -19,6 +19,8 @@ export interface ResearchRunOptions {
 	log?: (line: string) => void;
 	/** Replaces the real API client, for tests. */
 	deps?: LoopDeps;
+	/** Replaces the real fetch behind `fetch_url`, for tests and evals. */
+	fetchImpl?: typeof fetch;
 	now?: () => Date;
 }
 
@@ -46,7 +48,7 @@ export async function runResearch(options: ResearchRunOptions): Promise<Research
 	}
 	const memory = new ClientMemory(config.clientsDir);
 	const budget = { used: 0 };
-	const tools = [createFetchUrlTool({ maxChars: config.maxToolResultChars, maxFetches: config.maxFetches }, budget), ...createMemoryTools(memory, now)];
+	const tools = [createFetchUrlTool({ maxChars: config.maxToolResultChars, maxFetches: config.maxFetches, fetchImpl: options.fetchImpl }, budget), ...createMemoryTools(memory, now)];
 	const agent = createResearchAgent({ knowledge: renderKnowledge(notes), tools, maxFetches: config.maxFetches });
 	const deps = options.deps ?? createLoopDeps(config);
 	const message = buildResearchMessage({ brief: options.brief, clientName: options.clientName, language: options.language, today });

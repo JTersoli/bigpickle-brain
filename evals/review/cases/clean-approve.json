@@ -1,0 +1,83 @@
+{
+	"name": "clean-approve",
+	"description": "A correct proposal: services and prices from the knowledge, the two high-impact problems addressed, the agency's terms. Measures false positives: the verdict must be approve.",
+	"research": "ginas-bakery",
+	"brief": "Gina's Bakery, artisan bakery in Bondi. Site: https://ginas-bakery.example/. They take orders through Instagram DMs and want online orders.",
+	"proposal": {
+		"client_name": "Gina's Bakery",
+		"language": "en",
+		"title": "Gina's Bakery: online orders without the Instagram inbox",
+		"summary": "Today every order arrives as an Instagram message or a phone call, and some get lost on the way. We propose online ordering with your menu, cart and checkout, and a Google Business Profile so people in Bondi find you on Maps. You take orders while you bake.",
+		"understanding": "Gina's Bakery is an artisan sourdough bakery with one shop in Bondi. The website shows the menu and the hours, Instagram is active, and orders are taken by hand through direct messages and calls. There is no online ordering and no Google Business Profile, so the bakery is hard to find on Google Maps.",
+		"objectives": [
+			"Take orders online, without a person answering messages",
+			"Appear on Google Maps and in local searches for bakeries in Bondi"
+		],
+		"scope": [
+			{
+				"name": "Online ordering",
+				"service": "Online ordering",
+				"description": "A catalogue with your menu, a cart and a checkout, so customers order and pay without messaging you. You get each order by email and on your phone.",
+				"deliverables": ["Catalogue with the menu, photos and prices", "Cart and checkout", "Order notifications by email and on the phone", "Pickup time slots"],
+				"price_min": 3000,
+				"price_max": 5000,
+				"price_note": "",
+				"priority": "core"
+			},
+			{
+				"name": "Google Business Profile",
+				"service": "Google Business Profile setup",
+				"description": "The listing that puts the bakery on Google Maps: hours, photos, categories and a link to order online.",
+				"deliverables": ["Verified listing", "Photos, hours and categories", "First three posts"],
+				"price_min": 300,
+				"price_max": 500,
+				"price_note": "",
+				"priority": "core"
+			},
+			{
+				"name": "New website",
+				"service": "Business website",
+				"description": "Your current site is not mobile friendly, and most customers will look you up on a phone. A new site of up to five pages, mobile first, with the menu, the hours and the map, that the ordering plugs into. Optional: the ordering works with the current site too.",
+				"deliverables": ["Design and up to five pages", "Menu you can update", "Map and contact form"],
+				"price_min": 1500,
+				"price_max": 2500,
+				"price_note": "",
+				"priority": "optional"
+			},
+			{
+				"name": "Monthly care",
+				"service": "Monthly care",
+				"description": "Hosting, updates, backups and small changes to the menu, so the site keeps working without you.",
+				"deliverables": ["Hosting and backups", "Updates", "Small changes each month"],
+				"price_min": 80,
+				"price_max": 150,
+				"price_note": "",
+				"priority": "optional"
+			}
+		],
+		"out_of_scope": ["Delivery logistics and couriers", "Paid advertising", "Food photography", "Changes to the current website beyond the link to the ordering, unless you take the new website"],
+		"timeline": [
+			{ "phase": "Kickoff", "duration": "week 1", "work": "Menu, photos and domain access; structure of the catalogue", "needs_from_client": "Menu with prices, photos, access to the domain" },
+			{ "phase": "Build", "duration": "weeks 2 to 5", "work": "Catalogue, cart, checkout and notifications; Google listing", "needs_from_client": "Review the preview; verify the Google listing by post or phone" },
+			{ "phase": "Launch", "duration": "week 6", "work": "Go live, train you on the orders screen", "needs_from_client": "One hour for the training" }
+		],
+		"investment": {
+			"currency": "AUD",
+			"total_min": 3300,
+			"total_max": 5500,
+			"payment_terms": "50% to start, 50% on delivery. Two rounds of changes included.",
+			"market_comparison": "",
+			"ongoing": "Monthly care from AUD 80 per month, optional. Payment-provider fees are paid by you."
+		},
+		"next_steps": ["Confirm the scope and the pickup options", "Pay the first 50%", "Kickoff call to collect the menu and the photos"],
+		"internal": {
+			"assumptions": ["The menu has under 60 products", "Pickup only at launch; delivery is out of scope"],
+			"alerts": ["Instagram, reviews and the competitor were not verified"],
+			"questions_for_client": ["How many orders do you take per week today?", "Pickup only, or delivery too?", "Who updates the menu today, and how often does it change?"]
+		}
+	},
+	"expected": {
+		"verdict": "approve",
+		"findings": []
+	}
+}

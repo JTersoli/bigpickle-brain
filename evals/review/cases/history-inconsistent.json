@@ -1,0 +1,74 @@
+{
+	"name": "history-inconsistent",
+	"description": "The client's notes say the reviewer rejected Stripe last time and that the owner's budget is about AUD 4,000; a past proposal quoted the website at 2,000 – 2,500. The new proposal names Stripe again, quotes the website lower, and totals 4,500 – 7,500 without a word about the budget. The reviewer has to read the memory and the history to see it.",
+	"research": "ginas-bakery",
+	"brief": "Gina's Bakery, artisan bakery in Bondi. Site: https://ginas-bakery.example/. They take orders through Instagram DMs and want online orders. Second proposal: the first one from September was not accepted.",
+	"clientNotes": [
+		"- 2026-09-15 (research): Website: https://ginas-bakery.example/",
+		"- 2026-09-15 (proposal): Proposal: [[2026-09-15 Proposal Gina's Bakery]]",
+		"- 2026-09-15 (proposal): Quoted AUD 2,000 – AUD 2,500 for: Business website",
+		"- 2026-09-16 (review): Verdict: revise (1 high, 0 medium, 0 low)",
+		"- 2026-09-16 (review): Finding (high): Item \"Online shop\": Names Stripe as the payment provider; nothing in the knowledge or the research mentions it.",
+		"- 2026-09-20 (agent): The owner, Gina, said on the phone that her budget for everything is around AUD 4,000 and that she wants to decide before December."
+	],
+	"pastProposals": [
+		{ "client": "Gina's Bakery", "date": "2026-09-15", "language": "en", "status": "sent", "currency": "AUD", "total_min": 2000, "total_max": 2500, "services": "Business website" }
+	],
+	"proposal": {
+		"client_name": "Gina's Bakery",
+		"language": "en",
+		"title": "Gina's Bakery: a new site with online orders",
+		"summary": "Today every order arrives as an Instagram message or a phone call. We propose a new mobile-friendly website with online ordering through Stripe, so customers order and pay without messaging you.",
+		"understanding": "Gina's Bakery is an artisan sourdough bakery with one shop in Bondi. The website is not mobile friendly, orders are taken by hand through Instagram messages and calls, and there is no online ordering.",
+		"objectives": ["Take orders online, without a person answering messages", "A website that works on a phone"],
+		"scope": [
+			{
+				"name": "New website",
+				"service": "Business website",
+				"description": "Up to five pages, mobile first, with the menu, the hours, the map and a contact form.",
+				"deliverables": ["Design and five pages", "Menu you can update", "Map and contact form"],
+				"price_min": 1500,
+				"price_max": 2500,
+				"price_note": "",
+				"priority": "core"
+			},
+			{
+				"name": "Online ordering",
+				"service": "Online ordering",
+				"description": "A catalogue with your menu, a cart and a Stripe checkout, so customers order and pay without messaging you.",
+				"deliverables": ["Catalogue with the menu", "Cart and Stripe checkout", "Order notifications"],
+				"price_min": 3000,
+				"price_max": 5000,
+				"price_note": "",
+				"priority": "core"
+			}
+		],
+		"out_of_scope": ["Google Business Profile", "Delivery logistics", "Paid advertising"],
+		"timeline": [
+			{ "phase": "Kickoff", "duration": "week 1", "work": "Content, photos and domain access", "needs_from_client": "Menu with prices, photos, access to the domain" },
+			{ "phase": "Build", "duration": "weeks 2 to 7", "work": "Website, catalogue, cart and checkout", "needs_from_client": "Review the previews" },
+			{ "phase": "Launch", "duration": "week 8", "work": "Go live and training", "needs_from_client": "One hour for the training" }
+		],
+		"investment": {
+			"currency": "AUD",
+			"total_min": 4500,
+			"total_max": 7500,
+			"payment_terms": "50% to start, 50% on delivery. Two rounds of changes included.",
+			"market_comparison": "",
+			"ongoing": "Payment-provider fees are paid by you."
+		},
+		"next_steps": ["Confirm the scope", "Pay the first 50%", "Kickoff call"],
+		"internal": {
+			"assumptions": ["The menu has under 60 products", "Pickup only at launch"],
+			"alerts": ["Instagram and the competitor were not verified"],
+			"questions_for_client": ["How many orders do you take per week today?"]
+		}
+	},
+	"expected": {
+		"verdict": "revise",
+		"findings": [
+			{ "id": "stripe-again", "severity": "high", "by": "any", "match": ["Stripe"], "note": "The reviewer rejected Stripe in September and nothing mentions it; the notes say so." },
+			{ "id": "budget-ignored", "severity": "medium", "by": "any", "match": ["budget", "4,000", "4000"], "note": "The notes say the budget is about AUD 4,000; the proposal totals 4,500 – 7,500 and does not mention it." }
+		]
+	}
+}

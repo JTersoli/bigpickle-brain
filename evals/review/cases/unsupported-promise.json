@@ -1,0 +1,64 @@
+{
+	"name": "unsupported-promise",
+	"description": "Prices and services are right, but the proposal promises results (double the orders in 60 days, first page of Google), cites past clients and a team nothing supports, and launches online ordering in one week when the knowledge says five to seven. Only the reviewer can catch these.",
+	"research": "ginas-bakery",
+	"brief": "Gina's Bakery, artisan bakery in Bondi. Site: https://ginas-bakery.example/. They take orders through Instagram DMs and want online orders.",
+	"proposal": {
+		"client_name": "Gina's Bakery",
+		"language": "en",
+		"title": "Gina's Bakery: double your orders in 60 days",
+		"summary": "Today every order arrives as an Instagram message or a phone call. We propose online ordering and a Google Business Profile. Our clients double their online orders within 60 days of launch, and you will too.",
+		"understanding": "Gina's Bakery is an artisan sourdough bakery with one shop in Bondi. Orders are taken by hand through Instagram messages and calls. There is no online ordering and no Google Business Profile. We know the segment well: we did the same for Bondi Bakehouse and twelve other bakeries in Sydney, and our team of eight developers builds this in a week.",
+		"objectives": ["Double the online orders within 60 days of launch", "Reach the first page of Google for \"bakery Bondi\" within three months", "Take orders online, without a person answering messages"],
+		"scope": [
+			{
+				"name": "Online ordering",
+				"service": "Online ordering",
+				"description": "A catalogue with your menu, a cart and a checkout, so customers order and pay without messaging you. Live in one week.",
+				"deliverables": ["Catalogue with the menu, photos and prices", "Cart and checkout", "Order notifications by email and on the phone", "Pickup time slots"],
+				"price_min": 3000,
+				"price_max": 5000,
+				"price_note": "",
+				"priority": "core"
+			},
+			{
+				"name": "Google Business Profile",
+				"service": "Google Business Profile setup",
+				"description": "The listing that puts the bakery on Google Maps. We guarantee the first page of Google for \"bakery Bondi\" within three months.",
+				"deliverables": ["Verified listing", "Photos, hours and categories", "First three posts"],
+				"price_min": 300,
+				"price_max": 500,
+				"price_note": "",
+				"priority": "core"
+			}
+		],
+		"out_of_scope": ["Delivery logistics and couriers", "Paid advertising", "Food photography"],
+		"timeline": [
+			{ "phase": "Kickoff and build", "duration": "week 1", "work": "Menu, photos, catalogue, cart, checkout and Google listing", "needs_from_client": "Menu with prices, photos, access to the domain" },
+			{ "phase": "Launch", "duration": "week 2", "work": "Go live, train you on the orders screen", "needs_from_client": "One hour for the training" }
+		],
+		"investment": {
+			"currency": "AUD",
+			"total_min": 3300,
+			"total_max": 5500,
+			"payment_terms": "50% to start, 50% on delivery. Two rounds of changes included.",
+			"market_comparison": "",
+			"ongoing": "Payment-provider fees are paid by you."
+		},
+		"next_steps": ["Confirm the scope and the pickup options", "Pay the first 50%", "Kickoff call to collect the menu and the photos"],
+		"internal": {
+			"assumptions": ["The menu has under 60 products", "Pickup only at launch"],
+			"alerts": ["Instagram, reviews and the competitor were not verified"],
+			"questions_for_client": ["How many orders do you take per week today?", "Pickup only, or delivery too?"]
+		}
+	},
+	"expected": {
+		"verdict": "revise",
+		"findings": [
+			{ "id": "double-the-orders", "severity": "high", "by": "any", "match": ["double", "60 days", "sales results", "specific results", "promises results", "guaranteed results"], "note": "No input supports a result; the knowledge says no guarantees of sales." },
+			{ "id": "first-page-of-google", "severity": "medium", "by": "any", "match": ["first page", "guarantee", "ranking", "Google for"], "note": "The knowledge says no guarantees of rankings." },
+			{ "id": "past-clients-and-team", "severity": "medium", "by": "any", "match": ["Bondi Bakehouse", "twelve", "eight developers", "team", "past success", "past clients", "unverified client"], "note": "No input names past clients or a team; Bondi Bakehouse is an unverified competitor." },
+			{ "id": "one-week-launch", "severity": "medium", "by": "any", "match": ["one week", "1 week", "week 1", "weeks", "timeline"], "note": "The knowledge says online ordering takes 5 to 7 weeks." }
+		]
+	}
+}

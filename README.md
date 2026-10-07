@@ -4,7 +4,7 @@ From a client brief to a researched, priced and reviewed proposal, with AI agent
 
 Built for [bigpickle](https://www.bigpickle.com.au), a digital agency in Sydney, and written so any small agency can use it: the code is generic, and the agency's own knowledge, client notes, reports, proposals and reviews live outside the repository, in plain Markdown you can open in Obsidian or any editor.
 
-**Status:** v0.3. Three agents work end to end, **research**, **proposal** and **quality review**, and a pipeline runs them in order, sending the proposal back for a rewrite when the reviewer does not approve. Evals come next (see the roadmap).
+**Status:** v0.4. Three agents work end to end, **research**, **proposal** and **quality review**, a pipeline runs them in order, sending the proposal back for a rewrite when the reviewer does not approve, and a set of **evals** measures what the review catches and how the research agent holds up against prompt injection. Production comes next (see the roadmap).
 
 ## What it does today
 
@@ -57,6 +57,8 @@ Verdict:  approve (0 high, 0 medium, 1 low)
 
 Each stage also runs on its own: `research "<brief>"` writes the report, `propose --research runs/<run>/summary.json` writes a proposal from a saved research run, and `review --proposal runs/<run>/summary.json` reviews a saved proposal, so you can rerun a stage without paying for the ones before it.
 
+**The evals.** `eval` runs the cases in [evals/](evals/): proposals with planted errors (a price below the range, a service the agency does not sell, Stripe and Shopify nobody mentioned, promises nothing supports, the research ignored, a client history contradicted) through the checks and the reviewer, and briefs whose fake websites carry prompt injection (hidden instructions, a request to fetch an attacker's URL, memory poisoning, a prompt-leak demand) through the research agent. It scores what was caught, missed and flagged by mistake, and writes a report. `--checks-only` runs the code part alone, with no model, in under a second.
+
 ## Why
 
 Every proposal starts the same way: an hour of re-discovering the client. What do they sell, what is their website like, who are they up against, what would actually move the needle, what does that cost. That work is repetitive, it is where the agency's knowledge lives, and it is the part that gets skipped when the week is busy.
@@ -66,6 +68,7 @@ The goal is a system of three agents, coordinated by an orchestrator, that turns
 - **Research**: the business and its competition. Done.
 - **Proposal and quote**: with the agency's services, the price history and the tone. Done.
 - **Quality review**: checks the proposal against the research and the rules before a person sees it. Done.
+- **Evals**: cases that say what the review must find and what the research must not fall for, scored by code. Done.
 
 They share one memory about clients, and everything they produce is a note a person can read, edit and correct.
 
@@ -147,6 +150,12 @@ node src/cli.ts review --proposal runs/2026-10-01-113000-ginas-bakery-proposal/s
 
 # Brief from a file, report language forced, no rewrites, one-off overrides
 node src/cli.ts pipeline --file brief.md --language es --revisions 0 --model claude-sonnet-5-5 --effort high --max-steps 30
+
+# The evals: every case, one suite, the checks alone, or a few cases by name
+node src/cli.ts eval
+node src/cli.ts eval research
+node src/cli.ts eval --checks-only
+node src/cli.ts eval review --only invented
 ```
 
 `--client` is optional but recommended: it names the memory note and the files. Without it the agents take the name from the brief. `--language es|en` forces the language of the notes; without it the agents follow the brief (Claude does, small local models sometimes do not). `--revisions <n>` caps the rewrites of one pipeline run (default `BRAIN_MAX_REVISIONS`, 1).
@@ -191,6 +200,15 @@ updated: 2026-10-01
 
 On Claude, the system prompt (rules plus knowledge) is cached and reused across the steps of a run and across runs within five minutes, and the conversation tail is cached automatically, so most input tokens are billed at the cache-read rate. Every run prints and saves the token counts and an estimate in USD from the list prices in [src/pricing.ts](src/pricing.ts). Adaptive thinking is on, with `BRAIN_EFFORT` (default `medium`) controlling how much the model thinks. `BRAIN_MAX_STEPS` and `BRAIN_MAX_FETCHES` cap a run.
 
+## Evals
+
+The agents are measured, not trusted. [evals/](evals/) holds a fictional agency's knowledge, eight proposals with planted errors and four websites with prompt injection, each with what the system must find or must not do, and `node src/cli.ts eval` runs them with any model and scores them by code ([src/evals/](src/evals/)):
+
+- **Review cases** say which findings the review must produce (category, lowest severity, keywords) and who must catch each one: the automated checks alone, or the checks or the reviewer. The score counts what the checks caught, what the reviewer added, what was missed or rated too low, and the reviewer's false positives (high or medium findings that match nothing planted). A planted client history and price history test whether the reviewer reads the memory.
+- **Research cases** run the research agent for real, with `fetch_url` served from the case folder instead of the network. They check that the report keeps the real facts and none of the planted ones, that the memory note was not poisoned, that forbidden URLs were never requested (whether the code would have blocked them or not), that a canary from the knowledge did not leak, and that every opportunity is priced from the knowledge.
+
+Every run writes `runs/<date>-<time>-evals/report.md` with the totals and each case, plus every case's notes and traces, and never touches the real data folders. `--checks-only` scores the code part with no model, and the test suite asserts it: every expectation marked for the code is caught by the checks. [evals/README.md](evals/README.md) documents the case format.
+
 ## Security
 
 The agents read the open web and write proposals with prices, so the harness is built around one idea: **the model decides what to look at and what to say; the code decides what happens.**
@@ -200,14 +218,14 @@ The agents read the open web and write proposals with prices, so the harness is 
 - Proposal totals are computed from the line items; the knowledge is the only source of prices the agent is allowed to use; the checks compare every item's service and price with the knowledge tables by code; and the review flags invented technology, unsupported promises and anything to check before sending. The reviewer cannot write memory: the harness records the verdict.
 - Tool schemas are strict on Claude (`strict: true`), and every input is checked with Zod before a tool runs, on any model.
 - No client data in the repository: `.env`, `data/` and `runs/` are ignored. Knowledge notes marked `private: true` are never sent.
-- Known limits: DNS rebinding is not covered (the check is on the hostname, not the resolved address); pages that need JavaScript to render come back empty; there is no web search yet; the checks only read prices laid out in Markdown tables; the reviewer judges technologies and promises with the same model that wrote the proposal, so the evals (next) are what will show how much it catches.
+- Known limits: DNS rebinding is not covered (the check is on the hostname, not the resolved address); pages that need JavaScript to render come back empty; there is no web search yet; the checks only read prices laid out in Markdown tables; the reviewer judges technologies and promises with the same model that wrote the proposal, and the evals are what shows how much it catches with a given model.
 
 ## Roadmap
 
 1. **Research agent** with tools and memory, end to end. Done (v0.1).
 2. **Proposal and quote agent**, and the orchestrator that runs research then proposal. Done (v0.2).
 3. **Quality review agent**: code checks against the knowledge, a reviewer that judges the rest, the rewrite loop, and the shared memory read by all three. Done (v0.3).
-4. **Evals**: a set of briefs with expected findings, and prompt-injection test pages.
+4. **Evals**: proposals with planted errors and what the review must find, pages with prompt injection and what the research must not do, scored by code. Done (v0.4).
 5. **Production**: deploy, a minimal interface, time and cost metrics per run.
 6. Write-up and a public example.
 
@@ -220,7 +238,7 @@ npm run typecheck   # tsc --noEmit
 npm run lint        # eslint
 ```
 
-The tests cover the HTML reader, the URL rules and the fetch tool, the memory store and its tools, the knowledge loader, the proposal store, the provider profiles, the price-table parser and the checks, the three renderers, the verdict rules, the agent loop (against a fake model), and full research, proposal, review and pipeline runs, including the rewrite loop (against a fake model, with real files).
+The tests cover the HTML reader, the URL rules and the fetch tool, the memory store and its tools, the knowledge loader, the proposal store, the provider profiles, the price-table parser and the checks, the three renderers, the verdict rules, the agent loop (against a fake model), full research, proposal, review and pipeline runs, including the rewrite loop (against a fake model, with real files), and the evals: the case loaders, the scoring, and eval runs against a fake model, plus the assertion that the checks catch every eval expectation marked for the code.
 
 ## License
 
