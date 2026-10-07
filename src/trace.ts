@@ -16,6 +16,15 @@ export interface TraceData {
 	report?: unknown;
 	failure?: string;
 	error?: string;
+	/** Proposal and review runs keep their inputs too, so a later stage can start from the summary alone. */
+	research?: unknown;
+	researchNoteName?: string;
+	proposal?: unknown;
+	proposalNoteName?: string;
+	checks?: unknown;
+	findings?: unknown;
+	verdict?: string;
+	revision?: number;
 }
 
 export async function writeTrace(runDir: string, data: TraceData): Promise<void> {

@@ -1,6 +1,6 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import { buildProposalMessage, createProposalAgent, type Proposal } from './agents/proposal.ts';
+import { buildProposalMessage, createProposalAgent, type Proposal, type ProposalRevision } from './agents/proposal.ts';
 import type { ReportLanguage, ResearchReport } from './agents/research.ts';
 import { describeProvider, type BrainConfig } from './config.ts';
 import { AgentRunError, runAgent, type LoopDeps, type RunResult } from './loop.ts';
@@ -19,6 +19,10 @@ export interface ProposalRunOptions {
 	researchNoteName?: string;
 	clientName?: string;
 	language?: ReportLanguage;
+	/** When set, the agent rewrites this proposal to fix the review's findings instead of starting from scratch. */
+	revision?: ProposalRevision;
+	/** Which version this is: 1 for the first draft, 2 for the first rewrite. Defaults to 1, or 2 with a revision. */
+	version?: number;
 	config: BrainConfig;
 	log?: (line: string) => void;
 	/** Replaces the real API client, for tests. */
@@ -34,6 +38,7 @@ export interface ProposalRunOutcome {
 	result: RunResult<Proposal>;
 	cost: number | null;
 	totals: ProposalTotals;
+	version: number;
 }
 
 /** One proposal run: knowledge + memory + past proposals + agent, then the proposal note, the client memory and the trace. */
@@ -54,8 +59,9 @@ export async function runProposal(options: ProposalRunOptions): Promise<Proposal
 	const agent = createProposalAgent({ knowledge: renderKnowledge(notes), tools });
 	const deps = options.deps ?? createLoopDeps(config);
 	const clientName = options.clientName?.trim() || options.research.client_name.trim() || 'client';
-	const message = buildProposalMessage({ brief: options.brief, research: options.research, clientName, language: options.language, today });
-	const runDir = runFolder(config.runsDir, started, ClientMemory.slug(clientName), 'proposal');
+	const version = options.version ?? (options.revision ? 2 : 1);
+	const message = buildProposalMessage({ brief: options.brief, research: options.research, clientName, language: options.language, today, revision: options.revision });
+	const runDir = runFolder(config.runsDir, started, ClientMemory.slug(clientName), version > 1 ? `proposal-v${version}` : 'proposal');
 
 	let result: RunResult<Proposal>;
 	try {
@@ -86,10 +92,23 @@ export async function runProposal(options: ProposalRunOptions): Promise<Proposal
 	await mkdir(config.proposalsDir, { recursive: true });
 	await writeFile(proposalPath, markdown, 'utf8');
 
-	const memoryPath = await memory.append(clientName, proposalFacts(proposal, fileName.slice(0, -3), totals), 'proposal', started);
-	await writeTrace(runDir, { steps: result.steps, messages: result.messages, usage: result.usage, model: result.model, cost, brief: options.brief, reportPath: proposalPath, report: proposal });
+	const source = version > 1 ? `proposal v${version}` : 'proposal';
+	const memoryPath = await memory.append(clientName, proposalFacts(proposal, fileName.slice(0, -3), totals), source, started);
+	await writeTrace(runDir, {
+		steps: result.steps,
+		messages: result.messages,
+		usage: result.usage,
+		model: result.model,
+		cost,
+		brief: options.brief,
+		reportPath: proposalPath,
+		report: proposal,
+		research: options.research,
+		researchNoteName: options.researchNoteName,
+		revision: version - 1,
+	});
 
-	return { proposal, proposalPath, memoryPath, runDir, result, cost, totals };
+	return { proposal, proposalPath, memoryPath, runDir, result, cost, totals, version };
 }
 
 /** What the client's note keeps about this proposal, written by the harness. */

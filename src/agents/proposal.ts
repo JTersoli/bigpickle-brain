@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { formatFinding, type Finding } from '../checks.ts';
 import type { AgentDefinition } from '../loop.ts';
 import type { AgentTool } from '../tools/types.ts';
 import { LANGUAGE_NAMES, type ReportLanguage, type ResearchReport } from './research.ts';
@@ -77,6 +78,7 @@ How to work
 - Read the research first. The problems with the highest impact and the opportunities already mapped to services are the spine of the proposal. Address what the client asked for in the brief, add what the research shows they need, and leave the rest out or offer it as optional.
 - Check the agency's notes with recall_client (earlier proposals, prices already discussed, who the contact is) and past_proposals (what similar work was quoted at), so prices and promises stay consistent.
 - Save with remember_client what a colleague should know later: the amount quoted, what was promised, open questions.
+- A quality reviewer checks every proposal before a person sees it. If the notes mention what a reviewer found in an earlier proposal for this client, do not repeat it. When the message carries a review of a previous version, this is a revision: fix every finding and keep the rest.
 - Deliver with ${PROPOSAL_FINAL_TOOL}. That call is the only deliverable: do not write the proposal as a text answer.
 
 Rules
@@ -90,12 +92,20 @@ Rules
 ${options.knowledge}`;
 }
 
+/** A rewrite: the proposal as it was and what the reviewer found wrong with it. */
+export interface ProposalRevision {
+	proposal: Proposal;
+	summary: string;
+	findings: Finding[];
+}
+
 export interface ProposalTask {
 	brief: string;
 	research: ResearchReport;
 	clientName?: string;
 	today: string;
 	language?: ReportLanguage;
+	revision?: ProposalRevision;
 }
 
 /** The user message: the brief, the research report as JSON and the few things that change per run. */
@@ -107,9 +117,20 @@ export function buildProposalMessage(task: ProposalTask): string {
 		parts.push('No brief was given: work from the research report.');
 	}
 	parts.push(`<research_report>\n${JSON.stringify(task.research, null, 2)}\n</research_report>`);
+	if (task.revision) {
+		parts.push(`<previous_proposal>\n${JSON.stringify(task.revision.proposal, null, 2)}\n</previous_proposal>`);
+		const findings = task.revision.findings.length === 0 ? 'No findings.' : task.revision.findings.map(formatFinding).join('\n');
+		parts.push(`<review>\n${task.revision.summary.trim()}\n\n${findings}\n</review>`);
+	}
 	const name = task.clientName?.trim() ? task.clientName.trim() : task.research.client_name;
 	const language = task.language ? `${LANGUAGE_NAMES[task.language]} (${task.language})` : 'the language of the brief';
 	parts.push(`Client name: ${name}\nToday: ${task.today}\nLanguage of the proposal: ${language}`);
-	parts.push(`Write the proposal and deliver it with ${PROPOSAL_FINAL_TOOL}.`);
+	if (task.revision) {
+		parts.push(
+			`This is a revision. The previous proposal was reviewed and the review is above. Fix every finding, keep what the review did not object to, and deliver the whole proposal again with ${PROPOSAL_FINAL_TOOL}.`,
+		);
+	} else {
+		parts.push(`Write the proposal and deliver it with ${PROPOSAL_FINAL_TOOL}.`);
+	}
 	return parts.join('\n\n');
 }

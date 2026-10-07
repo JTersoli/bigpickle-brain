@@ -18,11 +18,14 @@ export interface BrainConfig {
 	maxSteps: number;
 	maxFetches: number;
 	maxToolResultChars: number;
+	/** How many times the pipeline rewrites a proposal the reviewer did not approve. 0 reviews once and stops. */
+	maxRevisions: number;
 	requestTimeoutMs: number;
 	knowledgeDir: string;
 	clientsDir: string;
 	reportsDir: string;
 	proposalsDir: string;
+	reviewsDir: string;
 	runsDir: string;
 }
 
@@ -54,11 +57,13 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env, cwd: string = p
 		maxSteps: integer(env.BRAIN_MAX_STEPS, 'BRAIN_MAX_STEPS', 20),
 		maxFetches: integer(env.BRAIN_MAX_FETCHES, 'BRAIN_MAX_FETCHES', 8),
 		maxToolResultChars: integer(env.BRAIN_MAX_TOOL_RESULT_CHARS, 'BRAIN_MAX_TOOL_RESULT_CHARS', 12_000),
+		maxRevisions: integer(env.BRAIN_MAX_REVISIONS, 'BRAIN_MAX_REVISIONS', 1, { zero: true }),
 		requestTimeoutMs: integer(env.BRAIN_TIMEOUT_MS, 'BRAIN_TIMEOUT_MS', 10 * 60 * 1000),
 		knowledgeDir: resolve(env.BRAIN_KNOWLEDGE_DIR, path.join(dataDir, 'knowledge')),
 		clientsDir: resolve(env.BRAIN_CLIENTS_DIR, path.join(dataDir, 'clients')),
 		reportsDir: resolve(env.BRAIN_REPORTS_DIR, path.join(dataDir, 'reports')),
 		proposalsDir: resolve(env.BRAIN_PROPOSALS_DIR, path.join(dataDir, 'proposals')),
+		reviewsDir: resolve(env.BRAIN_REVIEWS_DIR, path.join(dataDir, 'reviews')),
 		runsDir: resolve(env.BRAIN_RUNS_DIR, 'runs'),
 	};
 }
@@ -79,14 +84,15 @@ function isEffort(value: string): value is Effort {
 	return (EFFORTS as readonly string[]).includes(value);
 }
 
-function integer(value: string | undefined, name: string, fallback: number): number {
+function integer(value: string | undefined, name: string, fallback: number, options: { zero?: boolean } = {}): number {
 	const text = clean(value);
 	if (text === undefined) {
 		return fallback;
 	}
 	const parsed = Number(text);
-	if (!Number.isInteger(parsed) || parsed <= 0) {
-		throw new ConfigError(`${name} must be a positive integer (got "${text}").`);
+	const floor = options.zero ? 0 : 1;
+	if (!Number.isInteger(parsed) || parsed < floor) {
+		throw new ConfigError(`${name} must be ${options.zero ? 'zero or a positive' : 'a positive'} integer (got "${text}").`);
 	}
 	return parsed;
 }

@@ -15,9 +15,11 @@ describe('loadConfig', () => {
 		expect(config.clientsDir).toBe(path.join(cwd, 'data', 'clients'));
 		expect(config.reportsDir).toBe(path.join(cwd, 'data', 'reports'));
 		expect(config.proposalsDir).toBe(path.join(cwd, 'data', 'proposals'));
+		expect(config.reviewsDir).toBe(path.join(cwd, 'data', 'reviews'));
 		expect(config.runsDir).toBe(path.join(cwd, 'runs'));
 		expect(config.maxSteps).toBe(20);
 		expect(config.maxFetches).toBe(8);
+		expect(config.maxRevisions).toBe(1);
 		expect(describeProvider(config)).toBe('claude-opus-5-5 on the Claude API');
 	});
 
@@ -43,9 +45,12 @@ describe('loadConfig', () => {
 		expect(() => loadConfig({ BRAIN_EFFORT: 'turbo' }, cwd)).toThrow(/BRAIN_EFFORT/);
 		expect(() => loadConfig({ BRAIN_MAX_STEPS: '0' }, cwd)).toThrow(/BRAIN_MAX_STEPS/);
 		expect(() => loadConfig({ BRAIN_MAX_FETCHES: 'lots' }, cwd)).toThrow(/BRAIN_MAX_FETCHES/);
-		const config = loadConfig({ BRAIN_EFFORT: 'xhigh', BRAIN_MAX_STEPS: '3', BRAIN_TIMEOUT_MS: '5000' }, cwd);
+		expect(() => loadConfig({ BRAIN_MAX_REVISIONS: '-1' }, cwd)).toThrow(/BRAIN_MAX_REVISIONS must be zero or a positive integer/);
+		const config = loadConfig({ BRAIN_EFFORT: 'xhigh', BRAIN_MAX_STEPS: '3', BRAIN_TIMEOUT_MS: '5000', BRAIN_MAX_REVISIONS: '0', BRAIN_REVIEWS_DIR: 'checked' }, cwd);
 		expect(config.effort).toBe('xhigh');
 		expect(config.maxSteps).toBe(3);
 		expect(config.requestTimeoutMs).toBe(5000);
+		expect(config.maxRevisions).toBe(0);
+		expect(config.reviewsDir).toBe(path.join(cwd, 'checked'));
 	});
 });
