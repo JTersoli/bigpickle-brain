@@ -8,6 +8,7 @@ import { countFindings, type Finding } from './checks.ts';
 import { ConfigError, describeProvider, loadConfig, type BrainConfig } from './config.ts';
 import { AgentRunError } from './loop.ts';
 import { runPipeline } from './pipeline.ts';
+import { listRuns, renderRunsTable, summarizeRuns } from './metrics.ts';
 import { describeUsage } from './pricing.ts';
 import { formatMoney } from './proposalReport.ts';
 import { runProposal } from './propose.ts';
@@ -17,6 +18,7 @@ import { summarizeEvals } from './evals/report.ts';
 import { runEvals, type EvalSuite } from './evals/run.ts';
 import { runReview } from './review.ts';
 import { runResearch } from './run.ts';
+import { createBrainServer } from './server.ts';
 
 const USAGE = `bigpickle-brain: from a client brief to a researched, priced and reviewed proposal.
 
@@ -26,6 +28,8 @@ Usage:
   node src/cli.ts propose --research <summary.json>   proposal from a saved research run
   node src/cli.ts review --proposal <summary.json>    review of a saved proposal run
   node src/cli.ts eval [review|research] [options]    the evals: proposals with planted errors, pages with prompt injection
+  node src/cli.ts runs [--limit n] [--json]           every run so far: time, steps, tokens, cost and outcome
+  node src/cli.ts serve [--host h] [--port p]         the web interface and the JSON API, one run at a time
   node src/cli.ts <command> --file brief.md [options]
 
 Options:
@@ -41,12 +45,16 @@ Options:
       --only <text>         eval: only the cases whose name contains the text
       --checks-only         eval: the code checks alone, no model (review cases only)
       --cases <dir>         eval: the folder with the cases (default evals)
+      --limit <n>           runs: show only the latest n
+      --json                runs: print the records and the totals as JSON
+      --host <address>      serve: where to listen (default BRAIN_HOST or 127.0.0.1)
+      --port <n>            serve: the port (default BRAIN_PORT or 8787)
   -q, --quiet               Only print the result
   -h, --help                This help
 
 Configuration comes from the environment or a .env file in the current folder. See .env.example.`;
 
-type Command = 'pipeline' | 'research' | 'propose' | 'review' | 'eval';
+type Command = 'pipeline' | 'research' | 'propose' | 'review' | 'eval' | 'runs' | 'serve';
 
 async function main(argv: string[]): Promise<number> {
 	loadDotEnv();
@@ -67,6 +75,10 @@ async function main(argv: string[]): Promise<number> {
 			only: { type: 'string' },
 			'checks-only': { type: 'boolean' },
 			cases: { type: 'string' },
+			limit: { type: 'string' },
+			json: { type: 'boolean' },
+			host: { type: 'string' },
+			port: { type: 'string' },
 			quiet: { type: 'boolean', short: 'q' },
 			help: { type: 'boolean', short: 'h' },
 		},
@@ -107,6 +119,56 @@ async function main(argv: string[]): Promise<number> {
 	}
 	const config = loadConfig(env);
 	const log = values.quiet ? () => undefined : (line: string) => console.error(line);
+
+	if (command === 'runs') {
+		const records = await listRuns(config.runsDir);
+		const summary = summarizeRuns(records);
+		const limit = values.limit ? Number(values.limit) : undefined;
+		if (limit !== undefined && (!Number.isInteger(limit) || limit < 1)) {
+			console.error(`--limit must be a positive integer (got "${values.limit}").`);
+			return 1;
+		}
+		if (values.json) {
+			console.log(JSON.stringify({ runs: limit ? records.slice(0, limit) : records, summary }, null, '\t'));
+			return 0;
+		}
+		if (records.length === 0) {
+			console.log(`No runs in ${config.runsDir} yet.`);
+			return 0;
+		}
+		console.error(`Runs in ${config.runsDir}`);
+		console.error('');
+		for (const line of renderRunsTable(records, summary, { limit })) {
+			console.log(line);
+		}
+		return 0;
+	}
+
+	if (command === 'serve') {
+		const host = values.host?.trim() || env.BRAIN_HOST?.trim() || '127.0.0.1';
+		const port = Number(values.port?.trim() || env.BRAIN_PORT?.trim() || '8787');
+		if (!Number.isInteger(port) || port < 0 || port > 65535) {
+			console.error(`--port must be a port number (got "${values.port ?? env.BRAIN_PORT}").`);
+			return 1;
+		}
+		const token = env.BRAIN_SERVER_TOKEN?.trim() || undefined;
+		printHeader('Server', config);
+		const brain = createBrainServer({ config, token, log });
+		const address = await brain.listen(host, port);
+		const shownHost = address.family === 'IPv6' ? `[${address.address}]` : address.address;
+		console.error(`Listening on http://${shownHost}:${address.port}${token ? ' (token required)' : ' (no token: keep it on this machine)'}`);
+		console.error('One run at a time. Ctrl+C stops the server; a running job finishes first.');
+		await new Promise<void>((resolve) => {
+			const stop = () => {
+				console.error('');
+				console.error('Stopping: no new jobs accepted.');
+				brain.close().then(resolve, resolve);
+			};
+			process.once('SIGINT', stop);
+			process.once('SIGTERM', stop);
+		});
+		return 0;
+	}
 
 	if (command === 'propose') {
 		if (!values.research) {
@@ -225,7 +287,7 @@ async function main(argv: string[]): Promise<number> {
 }
 
 function isCommand(value: string): value is Command {
-	return value === 'pipeline' || value === 'research' || value === 'propose' || value === 'review' || value === 'eval';
+	return value === 'pipeline' || value === 'research' || value === 'propose' || value === 'review' || value === 'eval' || value === 'runs' || value === 'serve';
 }
 
 function printHeader(title: string, config: BrainConfig): void {

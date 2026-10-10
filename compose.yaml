@@ -1,0 +1,39 @@
+# docker compose up -d
+#
+# Runs the web interface on http://localhost:8787 with the notes in ./data and the
+# traces in ./runs, both on this machine. Put the model settings and the token in .env:
+#
+#   ANTHROPIC_API_KEY=sk-ant-...
+#   BRAIN_MODEL=claude-opus-5-5
+#   BRAIN_SERVER_TOKEN=<a long random string>
+#
+# To use an Ollama running on the host instead of the Claude API:
+#   ANTHROPIC_BASE_URL=http://host.docker.internal:11434
+#   BRAIN_MODEL=qwen3.6:35b-a3b
+
+services:
+  brain:
+    build: .
+    image: bigpickle-brain
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      # Inside the container the folders are fixed; the values in .env that point at local paths are overridden here.
+      BRAIN_DATA_DIR: /data
+      BRAIN_KNOWLEDGE_DIR: /data/knowledge
+      BRAIN_CLIENTS_DIR: /data/clients
+      BRAIN_REPORTS_DIR: /data/reports
+      BRAIN_PROPOSALS_DIR: /data/proposals
+      BRAIN_REVIEWS_DIR: /data/reviews
+      BRAIN_RUNS_DIR: /app/runs
+      BRAIN_HOST: 0.0.0.0
+      BRAIN_PORT: "8787"
+    ports:
+      # Published on localhost only. Put a reverse proxy with TLS in front to reach it from elsewhere.
+      - "127.0.0.1:8787:8787"
+    volumes:
+      - ./data:/data
+      - ./runs:/app/runs
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

@@ -1,0 +1,14 @@
+node_modules
+runs
+data
+scratch
+.env
+.env.*
+!.env.example
+.git
+.github
+test
+evals
+*.log
+.vscode
+.idea

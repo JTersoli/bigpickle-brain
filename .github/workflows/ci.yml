@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    name: typecheck, lint, tests and the code evals
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run check
+      # The review cases marked for the code must be caught by the checks alone: no model, no key, under a second.
+      - run: node src/cli.ts eval --checks-only
+        env:
+          ANTHROPIC_API_KEY: ci-no-key
+          BRAIN_DATA_DIR: ${{ runner.temp }}/data
+          BRAIN_RUNS_DIR: ${{ runner.temp }}/runs
+
+  image:
+    name: docker image builds
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          tags: bigpickle-brain:ci

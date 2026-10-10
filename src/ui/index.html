@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>bigpickle-brain</title>
+	<link rel="stylesheet" href="/app.css">
+</head>
+<body>
+	<header>
+		<h1>bigpickle-brain</h1>
+		<p id="provider" class="muted">connecting…</p>
+	</header>
+
+	<main>
+		<section class="card" id="new-run">
+			<h2>New run</h2>
+			<form id="run-form">
+				<label>
+					Brief
+					<textarea name="brief" rows="7" required placeholder="Gina's Bakery, artisan bakery in Bondi. Site: https://ginas.example.com. They sell through Instagram DMs and want online orders."></textarea>
+				</label>
+				<div class="row">
+					<label>Client <input name="clientName" maxlength="120" placeholder="from the brief"></label>
+					<label>Language
+						<select name="language">
+							<option value="">from the brief</option>
+							<option value="es">es</option>
+							<option value="en">en</option>
+						</select>
+					</label>
+					<label>Run
+						<select name="kind">
+							<option value="pipeline">pipeline: research, proposal, review</option>
+							<option value="research">research only</option>
+						</select>
+					</label>
+					<label>Rewrites <input name="revisions" type="number" min="0" max="5" placeholder="1"></label>
+				</div>
+				<div class="row">
+					<button type="submit" id="run-button">Run</button>
+					<span id="form-message" class="muted"></span>
+				</div>
+			</form>
+		</section>
+
+		<section class="card" id="job-card" hidden>
+			<h2>Progress <span id="job-status" class="pill"></span></h2>
+			<pre id="job-log" class="log"></pre>
+			<div id="job-result"></div>
+		</section>
+
+		<section class="card" id="metrics">
+			<h2>Runs</h2>
+			<div id="tiles" class="tiles"></div>
+			<div class="table-wrap">
+				<table id="runs-table">
+					<thead>
+						<tr><th>Started</th><th>Kind</th><th>Client</th><th>Model</th><th>Steps</th><th>Time</th><th>Cost</th><th>Outcome</th></tr>
+					</thead>
+					<tbody></tbody>
+				</table>
+			</div>
+			<p id="runs-empty" class="muted" hidden>No runs yet. The first one appears here when it finishes.</p>
+		</section>
+
+		<section class="card" id="note-card" hidden>
+			<h2 id="note-title">Note</h2>
+			<p id="note-path" class="muted path"></p>
+			<pre id="note-text" class="note"></pre>
+		</section>
+	</main>
+
+	<script src="/app.js"></script>
+</body>
+</html>

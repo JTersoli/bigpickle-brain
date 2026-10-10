@@ -1,6 +1,6 @@
 {
 	"name": "bigpickle-brain",
-	"version": "0.4.0",
+	"version": "0.5.0",
 	"description": "Multi-agent system for a digital agency: from a client brief to a researched, priced proposal, with shared memory about clients.",
 	"type": "module",
 	"private": true,
@@ -8,8 +8,10 @@
 		"node": ">=24"
 	},
 	"scripts": {
+		"start": "node src/cli.ts serve",
 		"research": "node src/cli.ts research",
 		"eval": "node src/cli.ts eval",
+		"runs": "node src/cli.ts runs",
 		"typecheck": "tsc --noEmit",
 		"test": "vitest run",
 		"lint": "eslint .",
@@ -21,7 +23,8 @@
 		"anthropic",
 		"agency",
 		"research",
-		"quality-review"
+		"quality-review",
+		"evals"
 	],
 	"author": "Josefina Tersoli",
 	"license": "MIT",

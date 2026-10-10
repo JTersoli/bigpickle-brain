@@ -1,0 +1,286 @@
+:root {
+	--bg: #f6f5f1;
+	--card: #ffffff;
+	--ink: #1d1d1b;
+	--muted: #6b6a66;
+	--line: #e3e1da;
+	--accent: #1f6f4a;
+	--accent-ink: #ffffff;
+	--ok: #1f6f4a;
+	--warn: #a15c00;
+	--bad: #a3262b;
+	--mono: ui-monospace, "Cascadia Mono", "SF Mono", Menlo, Consolas, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+	:root {
+		--bg: #15161a;
+		--card: #1e2026;
+		--ink: #ececea;
+		--muted: #9d9c97;
+		--line: #2e3038;
+		--accent: #4fae7f;
+		--accent-ink: #0d1a13;
+		--ok: #4fae7f;
+		--warn: #e0a04a;
+		--bad: #e06c70;
+	}
+}
+
+* {
+	box-sizing: border-box;
+}
+
+body {
+	margin: 0;
+	background: var(--bg);
+	color: var(--ink);
+	font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+header {
+	display: flex;
+	align-items: baseline;
+	gap: 16px;
+	padding: 20px 24px 0;
+	flex-wrap: wrap;
+}
+
+header h1 {
+	margin: 0;
+	font-size: 20px;
+	font-weight: 650;
+}
+
+main {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+	gap: 16px;
+	padding: 16px 24px 40px;
+}
+
+@media (max-width: 480px) {
+	main {
+		grid-template-columns: 1fr;
+		padding: 16px;
+	}
+	header {
+		padding: 16px 16px 0;
+	}
+}
+
+.card {
+	background: var(--card);
+	border: 1px solid var(--line);
+	border-radius: 10px;
+	padding: 18px 20px;
+	min-width: 0;
+}
+
+.card h2 {
+	margin: 0 0 12px;
+	font-size: 16px;
+	font-weight: 650;
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+#metrics {
+	grid-column: 1 / -1;
+}
+
+label {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	font-size: 13px;
+	color: var(--muted);
+	flex: 1 1 140px;
+	min-width: 0;
+}
+
+textarea, input, select {
+	font: inherit;
+	color: var(--ink);
+	background: var(--bg);
+	border: 1px solid var(--line);
+	border-radius: 6px;
+	padding: 8px 10px;
+	width: 100%;
+}
+
+textarea {
+	resize: vertical;
+	min-height: 120px;
+}
+
+.row {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px;
+	margin-top: 12px;
+	align-items: center;
+}
+
+button {
+	font: inherit;
+	font-weight: 600;
+	color: var(--accent-ink);
+	background: var(--accent);
+	border: 0;
+	border-radius: 6px;
+	padding: 9px 18px;
+	cursor: pointer;
+}
+
+button:disabled {
+	opacity: 0.55;
+	cursor: wait;
+}
+
+button.link {
+	background: none;
+	color: var(--accent);
+	padding: 2px 4px;
+	font-weight: 600;
+	text-decoration: underline;
+}
+
+.muted {
+	color: var(--muted);
+	margin: 0;
+}
+
+.path {
+	font-family: var(--mono);
+	font-size: 12px;
+	word-break: break-all;
+}
+
+.pill {
+	font-size: 12px;
+	font-weight: 600;
+	padding: 2px 8px;
+	border-radius: 999px;
+	background: var(--line);
+	color: var(--ink);
+}
+
+.pill.running {
+	background: var(--warn);
+	color: #fff;
+}
+
+.pill.done, .pill.approve {
+	background: var(--ok);
+	color: #fff;
+}
+
+.pill.failed, .pill.reject {
+	background: var(--bad);
+	color: #fff;
+}
+
+.pill.revise {
+	background: var(--warn);
+	color: #fff;
+}
+
+.log, .note {
+	font-family: var(--mono);
+	font-size: 12.5px;
+	line-height: 1.5;
+	background: var(--bg);
+	border: 1px solid var(--line);
+	border-radius: 6px;
+	padding: 12px;
+	margin: 0;
+	white-space: pre-wrap;
+	word-break: break-word;
+	max-height: 360px;
+	overflow: auto;
+}
+
+.note {
+	max-height: 70vh;
+}
+
+#job-result {
+	margin-top: 12px;
+	display: grid;
+	gap: 6px;
+}
+
+#job-result .line {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	align-items: baseline;
+}
+
+#job-result .key {
+	color: var(--muted);
+	min-width: 80px;
+	font-size: 13px;
+}
+
+.tiles {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+	gap: 10px;
+	margin-bottom: 14px;
+}
+
+.tile {
+	background: var(--bg);
+	border: 1px solid var(--line);
+	border-radius: 8px;
+	padding: 10px 12px;
+}
+
+.tile .value {
+	font-size: 20px;
+	font-weight: 650;
+}
+
+.tile .label {
+	font-size: 12px;
+	color: var(--muted);
+}
+
+.table-wrap {
+	overflow-x: auto;
+}
+
+table {
+	border-collapse: collapse;
+	width: 100%;
+	font-size: 13.5px;
+}
+
+th, td {
+	text-align: left;
+	padding: 7px 10px;
+	border-bottom: 1px solid var(--line);
+	white-space: nowrap;
+}
+
+th {
+	color: var(--muted);
+	font-weight: 600;
+	font-size: 12px;
+}
+
+tbody tr {
+	cursor: pointer;
+}
+
+tbody tr:hover {
+	background: var(--bg);
+}
+
+td.num {
+	text-align: right;
+	font-variant-numeric: tabular-nums;
+}

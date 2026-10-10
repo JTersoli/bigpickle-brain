@@ -4,7 +4,7 @@ From a client brief to a researched, priced and reviewed proposal, with AI agent
 
 Built for [bigpickle](https://www.bigpickle.com.au), a digital agency in Sydney, and written so any small agency can use it: the code is generic, and the agency's own knowledge, client notes, reports, proposals and reviews live outside the repository, in plain Markdown you can open in Obsidian or any editor.
 
-**Status:** v0.4. Three agents work end to end, **research**, **proposal** and **quality review**, a pipeline runs them in order, sending the proposal back for a rewrite when the reviewer does not approve, and a set of **evals** measures what the review catches and how the research agent holds up against prompt injection. Production comes next (see the roadmap).
+**Status:** v0.5. Three agents work end to end, **research**, **proposal** and **quality review**, a pipeline runs them in order, sending the proposal back for a rewrite when the reviewer does not approve, and a set of **evals** measures what the review catches and how the research agent holds up against prompt injection. It runs as a **service** too: a small web interface and JSON API to start runs and watch them, **metrics** of time, tokens and cost for every run, a Docker image and CI. The write-up comes next (see the roadmap).
 
 ## What it does today
 
@@ -57,6 +57,8 @@ Verdict:  approve (0 high, 0 medium, 1 low)
 
 Each stage also runs on its own: `research "<brief>"` writes the report, `propose --research runs/<run>/summary.json` writes a proposal from a saved research run, and `review --proposal runs/<run>/summary.json` reviews a saved proposal, so you can rerun a stage without paying for the ones before it.
 
+**The interface.** `serve` starts a web page and a JSON API on `http://127.0.0.1:8787`: paste a brief, pick the language and the number of rewrites, and watch the stages log live; when the run ends the page shows the verdict, the total and the notes it wrote, and every run so far with its time, steps, tokens and cost. Runs go one at a time, in order. `runs` prints the same metrics in the terminal.
+
 **The evals.** `eval` runs the cases in [evals/](evals/): proposals with planted errors (a price below the range, a service the agency does not sell, Stripe and Shopify nobody mentioned, promises nothing supports, the research ignored, a client history contradicted) through the checks and the reviewer, and briefs whose fake websites carry prompt injection (hidden instructions, a request to fetch an attacker's URL, memory poisoning, a prompt-leak demand) through the research agent. It scores what was caught, missed and flagged by mistake, and writes a report. `--checks-only` runs the code part alone, with no model, in under a second.
 
 ## Why
@@ -69,6 +71,7 @@ The goal is a system of three agents, coordinated by an orchestrator, that turns
 - **Proposal and quote**: with the agency's services, the price history and the tone. Done.
 - **Quality review**: checks the proposal against the research and the rules before a person sees it. Done.
 - **Evals**: cases that say what the review must find and what the research must not fall for, scored by code. Done.
+- **Production**: a service with a minimal interface, metrics per run, a Docker image and CI. Done.
 
 They share one memory about clients, and everything they produce is a note a person can read, edit and correct.
 
@@ -92,6 +95,8 @@ brief ──▶ research agent ──▶ report.md ──▶ proposal agent ─�
 - **Price history** ([src/tools/proposals.ts](src/tools/proposals.ts)): the proposals folder is the history. Every proposal note carries its client, services and total in its frontmatter, and `past_proposals` reads them back, so new quotes stay consistent with old ones.
 - **Totals and verdicts are computed, not trusted**: the proposal's total is the sum of its core items, worked out by the code; if the model wrote a different total, the note shows the sum and an alert says so. The review's verdict is the model's, raised by the code when the findings demand it.
 - **Provider** ([src/provider.ts](src/provider.ts)): one code path for the Claude API and for any server that speaks the Anthropic Messages API, such as Ollama. On Claude: cached system prompt, cached conversation, strict tools, adaptive thinking with a configurable effort, and server-side fallbacks for safety-classifier refusals. On a local server: the plain request.
+- **The server** ([src/server.ts](src/server.ts)) is Node's `http` module and nothing else: a job queue that runs one pipeline or research at a time, a JSON API, server-sent events for the live log, and a static page ([src/ui/](src/ui/), plain HTML, CSS and JavaScript, no build). Jobs call the same `runPipeline` and `runResearch` the CLI calls.
+- **Metrics** ([src/metrics.ts](src/metrics.ts)) come from the runs folder, not from a database: every run's `summary.json` records its kind, client, model, start time, duration, steps, tokens and cost, and the `runs` command and the page add them up per kind. Runs from older versions are read too, with the duration summed from their traces.
 
 ## Setup
 
@@ -156,6 +161,13 @@ node src/cli.ts eval
 node src/cli.ts eval research
 node src/cli.ts eval --checks-only
 node src/cli.ts eval review --only invented
+
+# Every run so far: time, steps, tokens, cost and outcome, per run and per kind
+node src/cli.ts runs
+node src/cli.ts runs --limit 10 --json
+
+# The web interface and the JSON API, on http://127.0.0.1:8787
+node src/cli.ts serve
 ```
 
 `--client` is optional but recommended: it names the memory note and the files. Without it the agents take the name from the brief. `--language es|en` forces the language of the notes; without it the agents follow the brief (Claude does, small local models sometimes do not). `--revisions <n>` caps the rewrites of one pipeline run (default `BRAIN_MAX_REVISIONS`, 1).
@@ -200,6 +212,53 @@ updated: 2026-10-01
 
 On Claude, the system prompt (rules plus knowledge) is cached and reused across the steps of a run and across runs within five minutes, and the conversation tail is cached automatically, so most input tokens are billed at the cache-read rate. Every run prints and saves the token counts and an estimate in USD from the list prices in [src/pricing.ts](src/pricing.ts). Adaptive thinking is on, with `BRAIN_EFFORT` (default `medium`) controlling how much the model thinks. `BRAIN_MAX_STEPS` and `BRAIN_MAX_FETCHES` cap a run.
 
+`runs` reads every run folder and prints one line per run and the totals per kind: how many, how many failed, the average time and cost, the tokens in and out. A model with no price (a local one) shows `n/a` and is counted apart, not as zero.
+
+```
+Started           Kind      Client                Model            Steps  Time     Cost    Outcome
+2026-10-10 16:49  review    Bourke Street Bakery  qwen3.6:35b-a3b  1      2.9 min  n/a     approve
+2026-10-10 16:41  proposal  Bourke Street Bakery  qwen3.6:35b-a3b  5      7.5 min  n/a     -
+2026-10-10 16:36  research  Bourke Street Bakery  qwen3.6:35b-a3b  10     5.6 min  n/a     -
+2026-10-10 16:36  pipeline  Bourke Street Bakery  qwen3.6:35b-a3b  16     16.0 min n/a     approve
+...
+
+pipeline  1 run, avg 16.0 min, 187k tokens in, 22k out
+research  2 runs, avg 4.4 min, 177k tokens in, 9,587 out
+total     11 runs, 86 requests, cost ~$0.00 (9 runs on a model with no price, not counted)
+```
+
+The same numbers are on the page, with the live log of the run in progress.
+
+## Running it as a service
+
+```bash
+node src/cli.ts serve            # http://127.0.0.1:8787
+```
+
+The page starts a pipeline (or research alone) from a brief, streams the log of each stage, shows the verdict, the total and the notes when it ends, and lists every run with its metrics. The JSON API behind it:
+
+| Route | What it does |
+|---|---|
+| `GET /api/status` | Provider, model, effort, data folders, what is running and what is queued |
+| `POST /api/jobs` | `{ "brief", "clientName"?, "language"?, "revisions"?, "kind"?: "pipeline" \| "research" }`, answers `202` with the job |
+| `GET /api/jobs`, `GET /api/jobs/:id` | The jobs this server has run, with their log and result |
+| `GET /api/jobs/:id/events` | Server-sent events: every log line, then `done` with the finished job |
+| `GET /api/runs`, `GET /api/runs/:name` | Every run in the runs folder with the metrics, and one run's summary |
+| `GET /api/notes?path=` | A note a run wrote, from the reports, proposals, reviews, clients or runs folders only |
+
+Jobs run **one at a time**: every run is a real agent run that costs money and writes to the same client memory. The server listens on `127.0.0.1` by default. To reach it from another machine set `BRAIN_SERVER_TOKEN` to a long random string and `BRAIN_HOST=0.0.0.0`: the server refuses to listen beyond localhost without a token, every API request must then send `Authorization: Bearer <token>` (the page asks for it once), and cross-site requests are rejected. Put TLS in front of it (a reverse proxy) before exposing it to the internet.
+
+**Docker.** The [Dockerfile](Dockerfile) builds a small image on `node:24-alpine` with the production dependencies only; [compose.yaml](compose.yaml) runs it with the notes in `./data` and the traces in `./runs`, published on `localhost:8787`:
+
+```bash
+docker compose up -d      # reads .env for the model, the key and BRAIN_SERVER_TOKEN
+docker compose logs -f
+```
+
+To use an Ollama on the host from inside the container, set `ANTHROPIC_BASE_URL=http://host.docker.internal:11434`.
+
+**CI.** [.github/workflows/ci.yml](.github/workflows/ci.yml) runs the typecheck, the lint, the tests and `eval --checks-only` on every push and pull request, and builds the Docker image. None of that needs an API key.
+
 ## Evals
 
 The agents are measured, not trusted. [evals/](evals/) holds a fictional agency's knowledge, eight proposals with planted errors and four websites with prompt injection, each with what the system must find or must not do, and `node src/cli.ts eval` runs them with any model and scores them by code ([src/evals/](src/evals/)):
@@ -218,6 +277,7 @@ The agents read the open web and write proposals with prices, so the harness is 
 - Proposal totals are computed from the line items; the knowledge is the only source of prices the agent is allowed to use; the checks compare every item's service and price with the knowledge tables by code; and the review flags invented technology, unsupported promises and anything to check before sending. The reviewer cannot write memory: the harness records the verdict.
 - Tool schemas are strict on Claude (`strict: true`), and every input is checked with Zod before a tool runs, on any model.
 - No client data in the repository: `.env`, `data/` and `runs/` are ignored. Knowledge notes marked `private: true` are never sent.
+- The server takes briefs from the network, so it is closed by default: loopback only unless a token is set, one job at a time, JSON bodies capped at 64 KB and briefs at 20,000 characters, every field validated before it reaches a model, cross-site requests refused, a strict `Content-Security-Policy` on the page, and `/api/notes` serves files from the data folders only, by their real path.
 - Known limits: DNS rebinding is not covered (the check is on the hostname, not the resolved address); pages that need JavaScript to render come back empty; there is no web search yet; the checks only read prices laid out in Markdown tables; the reviewer judges technologies and promises with the same model that wrote the proposal, and the evals are what shows how much it catches with a given model.
 
 ## Roadmap
@@ -226,7 +286,7 @@ The agents read the open web and write proposals with prices, so the harness is 
 2. **Proposal and quote agent**, and the orchestrator that runs research then proposal. Done (v0.2).
 3. **Quality review agent**: code checks against the knowledge, a reviewer that judges the rest, the rewrite loop, and the shared memory read by all three. Done (v0.3).
 4. **Evals**: proposals with planted errors and what the review must find, pages with prompt injection and what the research must not do, scored by code. Done (v0.4).
-5. **Production**: deploy, a minimal interface, time and cost metrics per run.
+5. **Production**: a service with a minimal interface and a JSON API, time and cost metrics per run, a Docker image and CI. Done (v0.5).
 6. Write-up and a public example.
 
 ## Development
@@ -238,7 +298,7 @@ npm run typecheck   # tsc --noEmit
 npm run lint        # eslint
 ```
 
-The tests cover the HTML reader, the URL rules and the fetch tool, the memory store and its tools, the knowledge loader, the proposal store, the provider profiles, the price-table parser and the checks, the three renderers, the verdict rules, the agent loop (against a fake model), full research, proposal, review and pipeline runs, including the rewrite loop (against a fake model, with real files), and the evals: the case loaders, the scoring, and eval runs against a fake model, plus the assertion that the checks catch every eval expectation marked for the code.
+The tests cover the HTML reader, the URL rules and the fetch tool, the memory store and its tools, the knowledge loader, the proposal store, the provider profiles, the price-table parser and the checks, the three renderers, the verdict rules, the agent loop (against a fake model), full research, proposal, review and pipeline runs, including the rewrite loop (against a fake model, with real files), the evals: the case loaders, the scoring, and eval runs against a fake model, plus the assertion that the checks catch every eval expectation marked for the code; the metrics, read from new and old run folders; and the server: the page, the API, a pipeline run from a POST with its event stream, the queue, the input validation, the token and the notes route. CI runs all of it on every push.
 
 ## License
 

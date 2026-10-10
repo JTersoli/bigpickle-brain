@@ -15,4 +15,14 @@ export default defineConfig(
 			},
 		},
 	},
+	{
+		// The web interface runs in the browser, not in Node.
+		files: ['src/ui/*.js'],
+		languageOptions: {
+			sourceType: 'script',
+			globals: {
+				...globals.browser,
+			},
+		},
+	},
 );

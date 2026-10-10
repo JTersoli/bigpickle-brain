@@ -53,13 +53,14 @@ export async function runResearch(options: ResearchRunOptions): Promise<Research
 	const deps = options.deps ?? createLoopDeps(config);
 	const message = buildResearchMessage({ brief: options.brief, clientName: options.clientName, language: options.language, today });
 	const runDir = runFolder(config.runsDir, started, ClientMemory.slug(options.clientName ?? options.brief.slice(0, 40)));
+	const stamp = { kind: 'research' as const, client: options.clientName?.trim() || undefined, startedAt: started.toISOString(), model: config.model, provider: describeProvider(config) };
 
 	let result: RunResult<ResearchReport>;
 	try {
 		result = await runAgent(deps, agent, message, { maxSteps: config.maxSteps, log, now });
 	} catch (error) {
 		if (error instanceof AgentRunError) {
-			await writeTrace(runDir, { steps: error.steps, messages: error.messages, usage: error.usage, brief: options.brief, failure: error.reason, error: error.message });
+			await writeTrace(runDir, { ...stamp, steps: error.steps, messages: error.messages, usage: error.usage, durationMs: now().getTime() - started.getTime(), brief: options.brief, failure: error.reason, error: error.message });
 		}
 		throw error;
 	}
@@ -84,7 +85,7 @@ export async function runResearch(options: ResearchRunOptions): Promise<Research
 	await writeFile(reportPath, markdown, 'utf8');
 
 	const memoryPath = await memory.append(clientName, memoryFacts(report, fileName.slice(0, -3)), 'research', started);
-	await writeTrace(runDir, { steps: result.steps, messages: result.messages, usage: result.usage, model: result.model, cost, brief: options.brief, reportPath, report });
+	await writeTrace(runDir, { ...stamp, client: clientName, steps: result.steps, messages: result.messages, usage: result.usage, durationMs: result.durationMs, model: result.model, cost, brief: options.brief, reportPath, report, fetches: budget.used });
 
 	return { report, reportPath, memoryPath, runDir, result, cost, fetches: budget.used };
 }

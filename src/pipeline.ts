@@ -2,7 +2,7 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import type { ReportLanguage } from './agents/research.ts';
 import { countFindings } from './checks.ts';
-import type { BrainConfig } from './config.ts';
+import { describeProvider, type BrainConfig } from './config.ts';
 import type { LoopDeps } from './loop.ts';
 import { emptyUsage, type UsageTotals } from './pricing.ts';
 import { runProposal, type ProposalRunOutcome } from './propose.ts';
@@ -142,8 +142,17 @@ export async function runPipeline(options: PipelineOptions): Promise<PipelineOut
 		path.join(runDir, 'summary.json'),
 		JSON.stringify(
 			{
-				brief: options.brief,
+				kind: 'pipeline',
+				client: clientName,
 				clientName,
+				startedAt: started.toISOString(),
+				model: options.config.model,
+				provider: describeProvider(options.config),
+				brief: options.brief,
+				steps: research.result.steps.length + attempts.reduce((sum, attempt) => sum + attempt.proposal.result.steps.length + attempt.review.result.steps.length, 0),
+				fetches: research.fetches,
+				verdict: last.review.verdict,
+				version: last.proposal.version,
 				research: { runDir: research.runDir, reportPath: research.reportPath, confidence: research.report.confidence, fetches: research.fetches },
 				proposal: { runDir: last.proposal.runDir, proposalPath: last.proposal.proposalPath, totals: last.proposal.totals, version: last.proposal.version },
 				review: { runDir: last.review.runDir, reviewPath: last.review.reviewPath, verdict: last.review.verdict, findings: countFindings(last.review.findings) },

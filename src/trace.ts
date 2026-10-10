@@ -5,13 +5,22 @@ import type { UsageTotals } from './pricing.ts';
 import { isoDate } from './tools/memory.ts';
 
 /** What a run leaves behind in its folder: one line per step, the full conversation and a summary. */
+export type RunKind = 'research' | 'proposal' | 'review' | 'pipeline' | 'evals';
+
 export interface TraceData {
 	steps: StepRecord[];
 	messages: MessageParam[];
 	usage: UsageTotals;
+	/** Which stage this was, so the metrics can group runs without parsing folder names. */
+	kind?: RunKind;
+	client?: string;
+	startedAt?: string;
+	durationMs?: number;
 	model?: string;
+	provider?: string;
 	cost?: number | null;
 	brief?: string;
+	fetches?: number;
 	reportPath?: string;
 	report?: unknown;
 	failure?: string;

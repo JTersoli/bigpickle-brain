@@ -62,13 +62,14 @@ export async function runProposal(options: ProposalRunOptions): Promise<Proposal
 	const version = options.version ?? (options.revision ? 2 : 1);
 	const message = buildProposalMessage({ brief: options.brief, research: options.research, clientName, language: options.language, today, revision: options.revision });
 	const runDir = runFolder(config.runsDir, started, ClientMemory.slug(clientName), version > 1 ? `proposal-v${version}` : 'proposal');
+	const stamp = { kind: 'proposal' as const, client: clientName, startedAt: started.toISOString(), model: config.model, provider: describeProvider(config), revision: version - 1 };
 
 	let result: RunResult<Proposal>;
 	try {
 		result = await runAgent(deps, agent, message, { maxSteps: config.maxSteps, log, now });
 	} catch (error) {
 		if (error instanceof AgentRunError) {
-			await writeTrace(runDir, { steps: error.steps, messages: error.messages, usage: error.usage, brief: options.brief, failure: error.reason, error: error.message });
+			await writeTrace(runDir, { ...stamp, steps: error.steps, messages: error.messages, usage: error.usage, durationMs: now().getTime() - started.getTime(), brief: options.brief, failure: error.reason, error: error.message });
 		}
 		throw error;
 	}
@@ -95,9 +96,11 @@ export async function runProposal(options: ProposalRunOptions): Promise<Proposal
 	const source = version > 1 ? `proposal v${version}` : 'proposal';
 	const memoryPath = await memory.append(clientName, proposalFacts(proposal, fileName.slice(0, -3), totals), source, started);
 	await writeTrace(runDir, {
+		...stamp,
 		steps: result.steps,
 		messages: result.messages,
 		usage: result.usage,
+		durationMs: result.durationMs,
 		model: result.model,
 		cost,
 		brief: options.brief,
@@ -105,7 +108,6 @@ export async function runProposal(options: ProposalRunOptions): Promise<Proposal
 		report: proposal,
 		research: options.research,
 		researchNoteName: options.researchNoteName,
-		revision: version - 1,
 	});
 
 	return { proposal, proposalPath, memoryPath, runDir, result, cost, totals, version };

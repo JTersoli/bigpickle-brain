@@ -81,13 +81,14 @@ export async function runReview(options: ReviewRunOptions): Promise<ReviewRunOut
 	const clientName = options.clientName?.trim() || options.proposal.client_name.trim() || 'client';
 	const message = buildReviewMessage({ brief: options.brief, research: options.research, proposal: options.proposal, checks, clientName, language: options.language, today });
 	const runDir = runFolder(config.runsDir, started, ClientMemory.slug(clientName), version > 1 ? `review-v${version}` : 'review');
+	const stamp = { kind: 'review' as const, client: clientName, startedAt: started.toISOString(), model: config.model, provider: describeProvider(config), revision: version - 1 };
 
 	let result: RunResult<Review>;
 	try {
 		result = await runAgent(deps, agent, message, { maxSteps: config.maxSteps, log, now });
 	} catch (error) {
 		if (error instanceof AgentRunError) {
-			await writeTrace(runDir, { steps: error.steps, messages: error.messages, usage: error.usage, brief: options.brief, checks, failure: error.reason, error: error.message });
+			await writeTrace(runDir, { ...stamp, steps: error.steps, messages: error.messages, usage: error.usage, durationMs: now().getTime() - started.getTime(), brief: options.brief, checks, failure: error.reason, error: error.message });
 		}
 		throw error;
 	}
@@ -123,9 +124,11 @@ export async function runReview(options: ReviewRunOptions): Promise<ReviewRunOut
 	const source = version > 1 ? `review v${version}` : 'review';
 	const memoryPath = await memory.append(clientName, reviewFacts(verdict.verdict, findings, fileName.slice(0, -3)), source, started);
 	await writeTrace(runDir, {
+		...stamp,
 		steps: result.steps,
 		messages: result.messages,
 		usage: result.usage,
+		durationMs: result.durationMs,
 		model: result.model,
 		cost,
 		brief: options.brief,
@@ -138,7 +141,6 @@ export async function runReview(options: ReviewRunOptions): Promise<ReviewRunOut
 		proposalNoteName: options.proposalNoteName,
 		research: options.research,
 		researchNoteName: options.researchNoteName,
-		revision: version - 1,
 	});
 
 	return { review, verdict: verdict.verdict, findings, checks, reviewPath, memoryPath, runDir, result, cost };
