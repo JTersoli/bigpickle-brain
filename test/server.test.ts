@@ -109,7 +109,7 @@ describe('the server', () => {
 		expect((await fetch(`${base}/nope`)).status).toBe(404);
 
 		const status = await body<{ provider: string; dirs: { runs: string } }>(await fetch(`${base}/api/status`));
-		expect(status).toMatchObject({ version: '0.5.0', model: 'claude-opus-5-5', local: false, auth: false, maxRevisions: 1, queue: { running: null, queued: 0 } });
+		expect(status).toMatchObject({ version: '1.0.0', model: 'claude-opus-5-5', local: false, auth: false, maxRevisions: 1, queue: { running: null, queued: 0 } });
 		expect(status.provider).toBe('claude-opus-5-5 on the Claude API');
 		expect(status.dirs.runs).toBe(path.join(dir, 'runs'));
 

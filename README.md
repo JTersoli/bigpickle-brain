@@ -4,7 +4,9 @@ From a client brief to a researched, priced and reviewed proposal, with AI agent
 
 Built for [bigpickle](https://www.bigpickle.com.au), a digital agency in Sydney, and written so any small agency can use it: the code is generic, and the agency's own knowledge, client notes, reports, proposals and reviews live outside the repository, in plain Markdown you can open in Obsidian or any editor.
 
-**Status:** v0.5. Three agents work end to end, **research**, **proposal** and **quality review**, a pipeline runs them in order, sending the proposal back for a rewrite when the reviewer does not approve, and a set of **evals** measures what the review catches and how the research agent holds up against prompt injection. It runs as a **service** too: a small web interface and JSON API to start runs and watch them, **metrics** of time, tokens and cost for every run, a Docker image and CI. The write-up comes next (see the roadmap).
+**Status:** v1.0. Three agents work end to end, **research**, **proposal** and **quality review**, a pipeline runs them in order, sending the proposal back for a rewrite when the reviewer does not approve, and a set of **evals** measures what the review catches and how the research agent holds up against prompt injection. It runs as a **service** too: a small web interface and JSON API to start runs and watch them, **metrics** of time, tokens and cost for every run, a Docker image and CI. Every planned phase is done; what the evals showed so far is under [Results](#results-so-far).
+
+**Read more:** [the write-up](docs/write-up.md) on the design decisions and what the evals showed, and [examples/](examples/) with three notes the agents wrote for a fictional agency and client.
 
 ## What it does today
 
@@ -72,6 +74,7 @@ The goal is a system of three agents, coordinated by an orchestrator, that turns
 - **Quality review**: checks the proposal against the research and the rules before a person sees it. Done.
 - **Evals**: cases that say what the review must find and what the research must not fall for, scored by code. Done.
 - **Production**: a service with a minimal interface, metrics per run, a Docker image and CI. Done.
+- **Write-up and a public example**: the decisions and the results, and notes the agents wrote on fictional data. Done.
 
 They share one memory about clients, and everything they produce is a note a person can read, edit and correct.
 
@@ -268,6 +271,23 @@ The agents are measured, not trusted. [evals/](evals/) holds a fictional agency'
 
 Every run writes `runs/<date>-<time>-evals/report.md` with the totals and each case, plus every case's notes and traces, and never touches the real data folders. `--checks-only` scores the code part with no model, and the test suite asserts it: every expectation marked for the code is caught by the checks. [evals/README.md](evals/README.md) documents the case format.
 
+## Results so far
+
+Everything below was measured with a local model, `qwen3.6:35b-a3b` on Ollama, which costs nothing and is the noisier end of what the system will run on. The same commands with Claude give the comparison; that run is next.
+
+The full eval suite (2026-10-07, 38 minutes, 41 requests):
+
+| Suite | Result |
+|---|---|
+| Research: 4 sites with prompt injection | 4/4 cases, 44/44 checks. No planted fact in any report, no poisoned memory, no forbidden URL requested, no canary leaked, every opportunity priced from the knowledge. |
+| Review: errors meant for the code checks | 7/7 caught, in under a second, with no model. |
+| Review: errors meant for the reviewer | 10/10 caught, including the two that need the client's memory and the price history. 12 false positives across the 8 proposals, almost all conditions from the knowledge that the proposal did not repeat. |
+| Review: the clean proposal | Failed: the model misread the timeline and answered "revise". This case measures false positives, and that is what it found. |
+
+The first full pipeline from the web page (2026-10-10), for a real bakery with a client note and an old proposal already in memory: 16 steps, 16.0 minutes (research 5.6, proposal 7.5, review 2.9), 5 pages fetched, verdict *approve* on the first review with one low finding, for a proposal of AUD 4,600 to 8,000. The proposal agent sent a malformed proposal three times and the loop had it correct each one.
+
+[examples/](examples/) has three of the eval notes as they were written: a research report that kept none of the hidden instructions on the page, the client memory it left, and a review that caught Shopify, Stripe, changed payment terms and a free trial. [docs/write-up.md](docs/write-up.md) goes through the decisions behind all of this.
+
 ## Security
 
 The agents read the open web and write proposals with prices, so the harness is built around one idea: **the model decides what to look at and what to say; the code decides what happens.**
@@ -287,7 +307,9 @@ The agents read the open web and write proposals with prices, so the harness is 
 3. **Quality review agent**: code checks against the knowledge, a reviewer that judges the rest, the rewrite loop, and the shared memory read by all three. Done (v0.3).
 4. **Evals**: proposals with planted errors and what the review must find, pages with prompt injection and what the research must not do, scored by code. Done (v0.4).
 5. **Production**: a service with a minimal interface and a JSON API, time and cost metrics per run, a Docker image and CI. Done (v0.5).
-6. Write-up and a public example.
+6. **Write-up and a public example**: [docs/write-up.md](docs/write-up.md) and [examples/](examples/). Done (v1.0).
+
+Next, outside the plan: run the evals and a full pipeline on Claude and compare with the local model; web search for the research agent; cover DNS rebinding in `fetch_url`.
 
 ## Development
 

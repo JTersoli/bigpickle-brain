@@ -14,7 +14,7 @@ import { estimateCost, type UsageTotals } from './pricing.ts';
 import { describeError } from './provider.ts';
 import { runResearch } from './run.ts';
 
-export const SERVER_VERSION = '0.5.0';
+export const SERVER_VERSION = '1.0.0';
 
 export type JobKind = 'pipeline' | 'research';
 export type JobStatus = 'queued' | 'running' | 'done' | 'failed';
